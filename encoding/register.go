@@ -5,7 +5,7 @@ package encoding
 import (
 	"io"
 
-	"github.com/davron112/lura/register"
+	"github.com/davron112/lura/v2/register"
 )
 
 // GetRegister returns the package register

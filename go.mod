@@ -1,4 +1,4 @@
-module github.com/davron112/lura
+module github.com/davron112/lura/v2
 
 go 1.17
 

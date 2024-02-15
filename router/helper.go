@@ -3,7 +3,7 @@
 package router
 
 import (
-	"github.com/davron112/lura/config"
+	"github.com/davron112/lura/v2/config"
 )
 
 func IsValidSequentialEndpoint(_ *config.EndpointConfig) bool {

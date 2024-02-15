@@ -10,8 +10,8 @@ import (
 	"errors"
 	"io"
 
-	"github.com/davron112/lura/config"
-	"github.com/davron112/lura/logging"
+	"github.com/davron112/lura/v2/config"
+	"github.com/davron112/lura/v2/logging"
 )
 
 // Namespace to be used in extra config

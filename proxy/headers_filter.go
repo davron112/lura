@@ -5,8 +5,8 @@ package proxy
 import (
 	"context"
 
-	"github.com/davron112/lura/config"
-	"github.com/davron112/lura/logging"
+	"github.com/davron112/lura/v2/config"
+	"github.com/davron112/lura/v2/logging"
 )
 
 // NewFilterHeadersMiddleware returns a middleware with or without a header filtering

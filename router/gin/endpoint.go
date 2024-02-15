@@ -9,11 +9,11 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"github.com/davron112/lura/config"
-	"github.com/davron112/lura/core"
-	"github.com/davron112/lura/logging"
-	"github.com/davron112/lura/proxy"
-	"github.com/davron112/lura/transport/http/server"
+	"github.com/davron112/lura/v2/config"
+	"github.com/davron112/lura/v2/core"
+	"github.com/davron112/lura/v2/logging"
+	"github.com/davron112/lura/v2/proxy"
+	"github.com/davron112/lura/v2/transport/http/server"
 )
 
 const requestParamsAsterisk string = "*"

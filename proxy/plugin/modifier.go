@@ -10,9 +10,9 @@ import (
 	"plugin"
 	"strings"
 
-	"github.com/davron112/lura/logging"
-	luraplugin "github.com/davron112/lura/plugin"
-	"github.com/davron112/lura/register"
+	"github.com/davron112/lura/v2/logging"
+	luraplugin "github.com/davron112/lura/v2/plugin"
+	"github.com/davron112/lura/v2/register"
 )
 
 const (

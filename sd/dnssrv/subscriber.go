@@ -12,8 +12,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/davron112/lura/config"
-	"github.com/davron112/lura/sd"
+	"github.com/davron112/lura/v2/config"
+	"github.com/davron112/lura/v2/sd"
 )
 
 // Namespace is the key for the dns sd module

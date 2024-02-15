@@ -8,7 +8,7 @@ package sd
 import (
 	"math/rand"
 
-	"github.com/davron112/lura/config"
+	"github.com/davron112/lura/v2/config"
 )
 
 // Subscriber keeps the set of backend hosts up to date

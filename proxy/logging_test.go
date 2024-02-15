@@ -9,7 +9,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/davron112/lura/logging"
+	"github.com/davron112/lura/v2/logging"
 )
 
 func TestNewLoggingMiddleware_ok(t *testing.T) {

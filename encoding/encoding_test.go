@@ -8,7 +8,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/davron112/lura/register"
+	"github.com/davron112/lura/v2/register"
 )
 
 func TestNoOpDecoder(t *testing.T) {

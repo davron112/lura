@@ -8,7 +8,7 @@ package router
 import (
 	"context"
 
-	"github.com/davron112/lura/config"
+	"github.com/davron112/lura/v2/config"
 )
 
 // Router sets up the public layer exposed to the users

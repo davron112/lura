@@ -11,7 +11,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"github.com/davron112/lura/logging"
+	"github.com/davron112/lura/v2/logging"
 )
 
 func TestDebugHandler(t *testing.T) {
