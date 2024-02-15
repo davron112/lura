@@ -20,6 +20,7 @@ import (
 	"github.com/davron112/lura/v2/proxy"
 	"github.com/davron112/lura/v2/router"
 	"github.com/davron112/lura/v2/transport/http/server"
+	"github.com/davron112/lura/v2/utils"
 )
 
 const logPrefix = "[SERVICE: Gin]"
