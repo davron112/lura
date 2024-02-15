@@ -8,12 +8,12 @@ package httptreemux
 import (
 	"net/http"
 
+	"github.com/davron112/lura/logging"
+	"github.com/davron112/lura/proxy"
+	"github.com/davron112/lura/router"
+	"github.com/davron112/lura/router/mux"
+	"github.com/davron112/lura/transport/http/server"
 	"github.com/dimfeld/httptreemux/v5"
-	"github.com/luraproject/lura/v2/logging"
-	"github.com/luraproject/lura/v2/proxy"
-	"github.com/luraproject/lura/v2/router"
-	"github.com/luraproject/lura/v2/router/mux"
-	"github.com/luraproject/lura/v2/transport/http/server"
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
 )

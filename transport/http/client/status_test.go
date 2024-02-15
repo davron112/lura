@@ -9,7 +9,7 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/luraproject/lura/v2/config"
+	"github.com/davron112/lura/config"
 )
 
 func TestDetailedHTTPStatusHandler(t *testing.T) {

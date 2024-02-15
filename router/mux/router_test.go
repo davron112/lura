@@ -17,10 +17,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/luraproject/lura/v2/config"
-	"github.com/luraproject/lura/v2/logging"
-	"github.com/luraproject/lura/v2/proxy"
-	"github.com/luraproject/lura/v2/transport/http/server"
+	"github.com/davron112/lura/config"
+	"github.com/davron112/lura/logging"
+	"github.com/davron112/lura/proxy"
+	"github.com/davron112/lura/transport/http/server"
 )
 
 func TestDefaultFactory_ok(t *testing.T) {

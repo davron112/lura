@@ -7,9 +7,9 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/davron112/lura/config"
+	"github.com/davron112/lura/logging"
 	"github.com/krakendio/flatmap/tree"
-	"github.com/luraproject/lura/v2/config"
-	"github.com/luraproject/lura/v2/logging"
 )
 
 // EntityFormatter formats the response data

@@ -6,8 +6,8 @@ import (
 	"context"
 	"testing"
 
-	"github.com/luraproject/lura/v2/config"
-	"github.com/luraproject/lura/v2/logging"
+	"github.com/davron112/lura/config"
+	"github.com/davron112/lura/logging"
 )
 
 func TestNewFilterHeadersMiddleware(t *testing.T) {

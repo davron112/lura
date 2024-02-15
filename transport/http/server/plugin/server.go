@@ -6,8 +6,8 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/luraproject/lura/v2/config"
-	"github.com/luraproject/lura/v2/logging"
+	"github.com/davron112/lura/config"
+	"github.com/davron112/lura/logging"
 )
 
 const Namespace = "github_com/devopsfaith/krakend/transport/http/server/handler"

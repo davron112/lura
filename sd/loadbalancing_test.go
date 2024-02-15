@@ -8,7 +8,7 @@ import (
 	"math"
 	"testing"
 
-	"github.com/luraproject/lura/v2/config"
+	"github.com/davron112/lura/config"
 )
 
 func ExampleNewRoundRobinLB() {

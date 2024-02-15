@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/luraproject/lura/v2/logging"
+	"github.com/davron112/lura/logging"
 )
 
 const veryLargeString = "abcdefghijklmopqrstuvwxyzabcdefghijklmopqrstuvwxyzabcdefghijklmopqrstuvwxyzabcdefghijklmopqrstuvwxyz"
