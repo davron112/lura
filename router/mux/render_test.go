@@ -1,19 +1,20 @@
 // SPDX-License-Identifier: Apache-2.0
+
 package mux
 
 import (
 	"bytes"
 	"context"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"reflect"
 	"testing"
 	"time"
 
-	"github.com/davron112/lura/config"
-	"github.com/davron112/lura/encoding"
-	"github.com/davron112/lura/proxy"
+	"github.com/davron112/lura/v2/config"
+	"github.com/davron112/lura/v2/encoding"
+	"github.com/davron112/lura/v2/proxy"
 )
 
 func TestRender_unknown(t *testing.T) {
@@ -43,7 +44,7 @@ func TestRender_unknown(t *testing.T) {
 		{"json", "application/json"},
 		{"unknown", "unknown"},
 	} {
-		req, _ := http.NewRequest("GET", "http://127.0.0.1:8080/_mux_endpoint?b=1", ioutil.NopCloser(&bytes.Buffer{}))
+		req, _ := http.NewRequest("GET", "http://127.0.0.1:8080/_mux_endpoint?b=1", io.NopCloser(&bytes.Buffer{}))
 		req.Header.Set("Content-Type", "application/json")
 		req.Header.Set("Accept", testData[1])
 
@@ -52,7 +53,7 @@ func TestRender_unknown(t *testing.T) {
 
 		defer w.Result().Body.Close()
 
-		body, ioerr := ioutil.ReadAll(w.Result().Body)
+		body, ioerr := io.ReadAll(w.Result().Body)
 		if ioerr != nil {
 			t.Error("reading response body:", ioerr)
 			return
@@ -104,7 +105,7 @@ func TestRender_string(t *testing.T) {
 		{"json", "application/json"},
 		{"unknown", "unknown"},
 	} {
-		req, _ := http.NewRequest("GET", "http://127.0.0.1:8080/_mux_endpoint?b=1", ioutil.NopCloser(&bytes.Buffer{}))
+		req, _ := http.NewRequest("GET", "http://127.0.0.1:8080/_mux_endpoint?b=1", io.NopCloser(&bytes.Buffer{}))
 		req.Header.Set("Content-Type", "application/json")
 		req.Header.Set("Accept", testData[1])
 
@@ -113,7 +114,7 @@ func TestRender_string(t *testing.T) {
 
 		defer w.Result().Body.Close()
 
-		body, ioerr := ioutil.ReadAll(w.Result().Body)
+		body, ioerr := io.ReadAll(w.Result().Body)
 		if ioerr != nil {
 			t.Error("reading response body:", ioerr)
 			return
@@ -170,7 +171,7 @@ func TestRender_string_noData(t *testing.T) {
 		router := http.NewServeMux()
 		router.Handle("/_mux_endpoint", EndpointHandler(endpoint, p))
 
-		req, _ := http.NewRequest("GET", "http://127.0.0.1:8080/_mux_endpoint?b=1", ioutil.NopCloser(&bytes.Buffer{}))
+		req, _ := http.NewRequest("GET", "http://127.0.0.1:8080/_mux_endpoint?b=1", io.NopCloser(&bytes.Buffer{}))
 		req.Header.Set("Content-Type", "application/json")
 
 		w := httptest.NewRecorder()
@@ -178,7 +179,7 @@ func TestRender_string_noData(t *testing.T) {
 
 		defer w.Result().Body.Close()
 
-		body, ioerr := ioutil.ReadAll(w.Result().Body)
+		body, ioerr := io.ReadAll(w.Result().Body)
 		if ioerr != nil {
 			t.Error("reading response body:", ioerr)
 			return
@@ -253,7 +254,7 @@ func TestRender_noop(t *testing.T) {
 	router := http.NewServeMux()
 	router.Handle("/_mux_endpoint", EndpointHandler(endpoint, p))
 
-	req, _ := http.NewRequest("GET", "http://127.0.0.1:8080/_mux_endpoint?b=1", ioutil.NopCloser(&bytes.Buffer{}))
+	req, _ := http.NewRequest("GET", "http://127.0.0.1:8080/_mux_endpoint?b=1", io.NopCloser(&bytes.Buffer{}))
 	req.Header.Set("Content-Type", "application/json")
 
 	w := httptest.NewRecorder()
@@ -261,7 +262,7 @@ func TestRender_noop(t *testing.T) {
 
 	defer w.Result().Body.Close()
 
-	body, ioerr := ioutil.ReadAll(w.Result().Body)
+	body, ioerr := io.ReadAll(w.Result().Body)
 	if ioerr != nil {
 		t.Error("reading response body:", ioerr)
 		return
@@ -304,7 +305,7 @@ func TestRender_noop_nilBody(t *testing.T) {
 	router := http.NewServeMux()
 	router.Handle("/_mux_endpoint", EndpointHandler(endpoint, p))
 
-	req, _ := http.NewRequest("GET", "http://127.0.0.1:8080/_mux_endpoint?b=1", ioutil.NopCloser(&bytes.Buffer{}))
+	req, _ := http.NewRequest("GET", "http://127.0.0.1:8080/_mux_endpoint?b=1", io.NopCloser(&bytes.Buffer{}))
 	req.Header.Set("Content-Type", "application/json")
 
 	w := httptest.NewRecorder()
@@ -312,7 +313,7 @@ func TestRender_noop_nilBody(t *testing.T) {
 
 	defer w.Result().Body.Close()
 
-	body, ioerr := ioutil.ReadAll(w.Result().Body)
+	body, ioerr := io.ReadAll(w.Result().Body)
 	if ioerr != nil {
 		t.Error("reading response body:", ioerr)
 		return
@@ -348,7 +349,7 @@ func TestRender_noop_nilResponse(t *testing.T) {
 	router := http.NewServeMux()
 	router.Handle("/_mux_endpoint", EndpointHandler(endpoint, p))
 
-	req, _ := http.NewRequest("GET", "http://127.0.0.1:8080/_mux_endpoint?b=1", ioutil.NopCloser(&bytes.Buffer{}))
+	req, _ := http.NewRequest("GET", "http://127.0.0.1:8080/_mux_endpoint?b=1", io.NopCloser(&bytes.Buffer{}))
 	req.Header.Set("Content-Type", "application/json")
 
 	w := httptest.NewRecorder()

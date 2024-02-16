@@ -1,15 +1,16 @@
 // SPDX-License-Identifier: Apache-2.0
+
 package proxy
 
 import (
 	"compress/gzip"
 	"context"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
-	"github.com/davron112/lura/encoding"
+	"github.com/davron112/lura/v2/encoding"
 )
 
 func TestNopHTTPResponseParser(t *testing.T) {
@@ -18,9 +19,13 @@ func TestNopHTTPResponseParser(t *testing.T) {
 		w.Header().Set("header1", "value1")
 		w.Write([]byte("some nice, interesting and long content"))
 	}
-	req, _ := http.NewRequest("GET", "/url", nil)
+	req, _ := http.NewRequest("GET", "/url", http.NoBody)
 	handler(w, req)
 	result, err := NoOpHTTPResponseParser(context.Background(), w.Result())
+	if err != nil {
+		t.Error(err.Error())
+		return
+	}
 	if !result.IsComplete {
 		t.Error("unexpected result")
 	}
@@ -34,7 +39,7 @@ func TestNopHTTPResponseParser(t *testing.T) {
 	if h, ok := headers["Header1"]; !ok || h[0] != "value1" {
 		t.Error("unexpected result:", result.Metadata.Headers)
 	}
-	body, err := ioutil.ReadAll(result.Io)
+	body, err := io.ReadAll(result.Io)
 	if err != nil {
 		t.Error("unexpected error:", err.Error())
 	}
@@ -55,7 +60,7 @@ func TestDefaultHTTPResponseParser_gzipped(t *testing.T) {
 		gzipWriter.Write([]byte(`{"msg":"some nice, interesting and long content"}`))
 		gzipWriter.Flush()
 	}
-	req, _ := http.NewRequest("GET", "/url", nil)
+	req, _ := http.NewRequest("GET", "/url", http.NoBody)
 	req.Header.Add("Accept-Encoding", "gzip")
 	handler(w, req)
 
@@ -85,7 +90,7 @@ func TestDefaultHTTPResponseParser_plain(t *testing.T) {
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		w.Write([]byte(`{"msg":"some nice, interesting and long content"}`))
 	}
-	req, _ := http.NewRequest("GET", "/url", nil)
+	req, _ := http.NewRequest("GET", "/url", http.NoBody)
 	handler(w, req)
 
 	result, err := DefaultHTTPResponseParserFactory(HTTPResponseParserConfig{

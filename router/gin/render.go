@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
+
 package gin
 
 import (
@@ -6,9 +7,9 @@ import (
 	"net/http"
 	"sync"
 
-	"github.com/davron112/lura/config"
-	"github.com/davron112/lura/encoding"
-	"github.com/davron112/lura/proxy"
+	"github.com/davron112/lura/v2/config"
+	"github.com/davron112/lura/v2/encoding"
+	"github.com/davron112/lura/v2/proxy"
 	"github.com/gin-gonic/gin"
 )
 
@@ -18,17 +19,26 @@ type Render func(*gin.Context, *proxy.Response)
 
 // NEGOTIATE defines the value of the OutputEncoding for the negotiated render
 const NEGOTIATE = "negotiate"
+const XML = "xml"
+const YAML = "yaml"
 
 var (
 	mutex          = &sync.RWMutex{}
 	renderRegister = map[string]Render{
-		NEGOTIATE:         negotiatedRender,
 		encoding.STRING:   stringRender,
 		encoding.JSON:     jsonRender,
 		encoding.NOOP:     noopRender,
 		"json-collection": jsonCollectionRender,
+		XML:               xmlRender,
+		YAML:              yamlRender,
 	}
 )
+
+func init() {
+	// the negotiated render must be registered at the init function in order
+	// to avoid a cyclical dependency
+	renderRegister[NEGOTIATE] = negotiatedRender
+}
 
 // RegisterRender allows clients to register their custom renders
 func RegisterRender(name string, r Render) {
@@ -63,11 +73,11 @@ func getWithFallback(key string, fallback Render) Render {
 func negotiatedRender(c *gin.Context, response *proxy.Response) {
 	switch c.NegotiateFormat(gin.MIMEJSON, gin.MIMEPlain, gin.MIMEXML) {
 	case gin.MIMEXML:
-		xmlRender(c, response)
+		getWithFallback(XML, jsonRender)(c, response)
 	case gin.MIMEPlain:
-		yamlRender(c, response)
+		getWithFallback(YAML, jsonRender)(c, response)
 	default:
-		jsonRender(c, response)
+		getWithFallback(encoding.JSON, jsonRender)(c, response)
 	}
 }
 
@@ -142,12 +152,12 @@ func noopRender(c *gin.Context, response *proxy.Response) {
 		c.Status(http.StatusInternalServerError)
 		return
 	}
-	c.Status(response.Metadata.StatusCode)
 	for k, vs := range response.Metadata.Headers {
 		for _, v := range vs {
 			c.Writer.Header().Add(k, v)
 		}
 	}
+	c.Status(response.Metadata.StatusCode)
 	if response.Io == nil {
 		return
 	}

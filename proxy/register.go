@@ -1,8 +1,9 @@
 // SPDX-License-Identifier: Apache-2.0
+
 package proxy
 
 import (
-	"github.com/davron112/lura/register"
+	"github.com/davron112/lura/v2/register"
 )
 
 func NewRegister() *Register {
@@ -16,7 +17,7 @@ type Register struct {
 }
 
 type combinerRegister struct {
-	data     register.Untyped
+	data     *register.Untyped
 	fallback ResponseCombiner
 }
 

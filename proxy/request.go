@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: Apache-2.0
+
 package proxy
 
 import (
 	"bytes"
 	"io"
-	"io/ioutil"
 	"net/url"
 )
 
@@ -31,7 +31,7 @@ func (r *Request) GeneratePath(URLPattern string) {
 		key = append(key, "{{."...)
 		key = append(key, k...)
 		key = append(key, "}}"...)
-		buff = bytes.Replace(buff, key, []byte(v), -1)
+		buff = bytes.ReplaceAll(buff, key, []byte(v))
 	}
 	r.Path = string(buff)
 }
@@ -66,8 +66,8 @@ func CloneRequest(r *Request) *Request {
 	buf.ReadFrom(r.Body)
 	r.Body.Close()
 
-	r.Body = ioutil.NopCloser(bytes.NewReader(buf.Bytes()))
-	clone.Body = ioutil.NopCloser(buf)
+	r.Body = io.NopCloser(bytes.NewReader(buf.Bytes()))
+	clone.Body = io.NopCloser(buf)
 
 	return &clone
 }

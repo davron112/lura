@@ -1,51 +1,55 @@
 // SPDX-License-Identifier: Apache-2.0
+
 package proxy
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"net/url"
 
-	"github.com/davron112/lura/config"
-	"github.com/davron112/lura/proxy/plugin"
+	"github.com/davron112/lura/v2/config"
+	"github.com/davron112/lura/v2/logging"
+	"github.com/davron112/lura/v2/proxy/plugin"
 )
 
 // NewPluginMiddleware returns an endpoint middleware wrapped (if required) with the plugin middleware.
 // The plugin middleware will try to load all the required plugins from the register and execute them in order.
 // RequestModifiers are executed before passing the request to the next middlware. ResponseModifiers are executed
 // once the response is returned from the next middleware.
-func NewPluginMiddleware(endpoint *config.EndpointConfig) Middleware {
+func NewPluginMiddleware(logger logging.Logger, endpoint *config.EndpointConfig) Middleware {
 	cfg, ok := endpoint.ExtraConfig[plugin.Namespace].(map[string]interface{})
 
 	if !ok {
 		return EmptyMiddleware
 	}
 
-	return newPluginMiddleware(cfg)
+	return newPluginMiddleware(logger, "ENDPOINT", endpoint.Endpoint, cfg)
 }
 
 // NewBackendPluginMiddleware returns a backend middleware wrapped (if required) with the plugin middleware.
 // The plugin middleware will try to load all the required plugins from the register and execute them in order.
 // RequestModifiers are executed before passing the request to the next middlware. ResponseModifiers are executed
 // once the response is returned from the next middleware.
-func NewBackendPluginMiddleware(remote *config.Backend) Middleware {
+func NewBackendPluginMiddleware(logger logging.Logger, remote *config.Backend) Middleware {
 	cfg, ok := remote.ExtraConfig[plugin.Namespace].(map[string]interface{})
 
 	if !ok {
 		return EmptyMiddleware
 	}
 
-	return newPluginMiddleware(cfg)
+	return newPluginMiddleware(logger, "BACKEND", remote.URLPattern, cfg)
 }
 
-func newPluginMiddleware(cfg map[string]interface{}) Middleware {
+func newPluginMiddleware(logger logging.Logger, tag, pattern string, cfg map[string]interface{}) Middleware {
 	plugins, ok := cfg["name"].([]interface{})
 	if !ok {
 		return EmptyMiddleware
 	}
 
-	reqModifiers := []func(interface{}) (interface{}, error){}
-	respModifiers := []func(interface{}) (interface{}, error){}
+	var reqModifiers []func(interface{}) (interface{}, error)
+
+	var respModifiers []func(interface{}) (interface{}, error)
 
 	for _, p := range plugins {
 		name, ok := p.(string)
@@ -54,12 +58,16 @@ func newPluginMiddleware(cfg map[string]interface{}) Middleware {
 		}
 
 		if mf, ok := plugin.GetRequestModifier(name); ok {
-			reqModifiers = append(reqModifiers, mf(cfg))
+			if fn := mf(cfg); fn != nil {
+				reqModifiers = append(reqModifiers, fn)
+			}
 			continue
 		}
 
 		if mf, ok := plugin.GetResponseModifier(name); ok {
-			respModifiers = append(respModifiers, mf(cfg))
+			if fn := mf(cfg); fn != nil {
+				respModifiers = append(respModifiers, fn)
+			}
 		}
 	}
 
@@ -67,6 +75,16 @@ func newPluginMiddleware(cfg map[string]interface{}) Middleware {
 	if totReqModifiers == totRespModifiers && totRespModifiers == 0 {
 		return EmptyMiddleware
 	}
+
+	logger.Debug(
+		fmt.Sprintf(
+			"[%s: %s][Modifier Plugins] Adding %d request and %d response modifiers",
+			tag,
+			pattern,
+			totReqModifiers,
+			totRespModifiers,
+		),
+	)
 
 	return func(next ...Proxy) Proxy {
 		if len(next) > 1 {
@@ -115,7 +133,7 @@ func newPluginMiddleware(cfg map[string]interface{}) Middleware {
 
 func executeRequestModifiers(reqModifiers []func(interface{}) (interface{}, error), r *Request) (*Request, error) {
 	var tmp RequestWrapper
-	tmp = requestWrapper{
+	tmp = &requestWrapper{
 		method:  r.Method,
 		url:     r.URL,
 		query:   r.Query,
@@ -176,10 +194,8 @@ func executeResponseModifiers(respModifiers []func(interface{}) (interface{}, er
 	r.IsComplete = tmp.IsComplete()
 	r.Io = tmp.Io()
 	r.Metadata = Metadata{}
-	if m := tmp.Metadata(); m != nil {
-		r.Metadata.Headers = m.Headers()
-		r.Metadata.StatusCode = m.StatusCode()
-	}
+	r.Metadata.Headers = tmp.Headers()
+	r.Metadata.StatusCode = tmp.StatusCode()
 	return r, nil
 }
 
@@ -194,18 +210,13 @@ type RequestWrapper interface {
 	Path() string
 }
 
-// ResponseWrapper is an interface for passing proxy response metadata between the lura pipe and the loaded plugins
-type ResponseMetadataWrapper interface {
-	Headers() map[string][]string
-	StatusCode() int
-}
-
 // ResponseWrapper is an interface for passing proxy response between the lura pipe and the loaded plugins
 type ResponseWrapper interface {
 	Data() map[string]interface{}
 	Io() io.Reader
 	IsComplete() bool
-	Metadata() ResponseMetadataWrapper
+	Headers() map[string][]string
+	StatusCode() int
 }
 
 type requestWrapper struct {
@@ -218,13 +229,13 @@ type requestWrapper struct {
 	headers map[string][]string
 }
 
-func (r requestWrapper) Method() string               { return r.method }
-func (r requestWrapper) URL() *url.URL                { return r.url }
-func (r requestWrapper) Query() url.Values            { return r.query }
-func (r requestWrapper) Path() string                 { return r.path }
-func (r requestWrapper) Body() io.ReadCloser          { return r.body }
-func (r requestWrapper) Params() map[string]string    { return r.params }
-func (r requestWrapper) Headers() map[string][]string { return r.headers }
+func (r *requestWrapper) Method() string               { return r.method }
+func (r *requestWrapper) URL() *url.URL                { return r.url }
+func (r *requestWrapper) Query() url.Values            { return r.query }
+func (r *requestWrapper) Path() string                 { return r.path }
+func (r *requestWrapper) Body() io.ReadCloser          { return r.body }
+func (r *requestWrapper) Params() map[string]string    { return r.params }
+func (r *requestWrapper) Headers() map[string][]string { return r.headers }
 
 type metadataWrapper struct {
 	headers    map[string][]string
@@ -241,7 +252,8 @@ type responseWrapper struct {
 	io         io.Reader
 }
 
-func (r responseWrapper) Data() map[string]interface{}      { return r.data }
-func (r responseWrapper) IsComplete() bool                  { return r.isComplete }
-func (r responseWrapper) Metadata() ResponseMetadataWrapper { return r.metadata }
-func (r responseWrapper) Io() io.Reader                     { return r.io }
+func (r responseWrapper) Data() map[string]interface{} { return r.data }
+func (r responseWrapper) IsComplete() bool             { return r.isComplete }
+func (r responseWrapper) Io() io.Reader                { return r.io }
+func (r responseWrapper) Headers() map[string][]string { return r.metadata.headers }
+func (r responseWrapper) StatusCode() int              { return r.metadata.statusCode }

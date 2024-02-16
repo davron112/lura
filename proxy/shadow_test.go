@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
+
 package proxy
 
 import (
@@ -9,14 +10,15 @@ import (
 	"testing"
 	"time"
 
-	"github.com/davron112/lura/config"
-	"github.com/davron112/lura/logging"
+	"github.com/davron112/lura/v2/config"
+	"github.com/davron112/lura/v2/logging"
 )
 
 var (
 	extraCfg = config.ExtraConfig{
 		Namespace: map[string]interface{}{
-			"shadow": true,
+			"shadow":         true,
+			"shadow_timeout": "10s",
 		},
 	}
 	badExtra = config.ExtraConfig{
@@ -38,15 +40,19 @@ func TestIsShadowBackend(t *testing.T) {
 	cfg := &config.Backend{ExtraConfig: extraCfg}
 	badCfg := &config.Backend{ExtraConfig: badExtra}
 
-	if !isShadowBackend(cfg) {
+	d, ok := isShadowBackend(cfg)
+	if !ok {
 		t.Error("The shadow backend should be true")
 	}
+	if d != 10*time.Second {
+		t.Errorf("Invalid duration %s", d)
+	}
 
-	if isShadowBackend(&config.Backend{}) {
+	if _, ok := isShadowBackend(&config.Backend{}); ok {
 		t.Error("The shadow backend should be false")
 	}
 
-	if isShadowBackend(badCfg) {
+	if _, ok := isShadowBackend(badCfg); ok {
 		t.Error("The shadow backend should be false")
 	}
 }

@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
+
 package proxy
 
 import (
@@ -6,7 +7,8 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/davron112/lura/config"
+	"github.com/davron112/lura/v2/config"
+	"github.com/davron112/lura/v2/logging"
 )
 
 func TestEntityFormatterFunc(t *testing.T) {
@@ -22,7 +24,7 @@ func TestEntityFormatterFunc(t *testing.T) {
 	}
 }
 
-func TestEntityFormatter_newWhitelistingFilter(t *testing.T) {
+func TestEntityFormatter_newAllowFilter(t *testing.T) {
 	sample := Response{
 		Data: map[string]interface{}{
 			"supu": 42,
@@ -46,7 +48,7 @@ func TestEntityFormatter_newWhitelistingFilter(t *testing.T) {
 		},
 		IsComplete: true,
 	}
-	f := NewEntityFormatter(&config.Backend{Whitelist: []string{"supu", "a.b", "a.c", "foo.unknown"}})
+	f := NewEntityFormatter(&config.Backend{AllowList: []string{"supu", "a.b", "a.c", "foo.unknown"}})
 	result := f.Format(sample)
 	if v, ok := result.Data["supu"]; !ok || v != expected.Data["supu"] {
 		t.Errorf("The formatter returned an unexpected result for the field supu: %v\n", result)
@@ -70,7 +72,7 @@ func TestEntityFormatter_newWhitelistingFilter(t *testing.T) {
 	}
 }
 
-func TestEntityFormatter_newWhitelistingDeepFields(t *testing.T) {
+func TestEntityFormatter_newAllowDeepFields(t *testing.T) {
 	sample := Response{
 		Data: map[string]interface{}{
 			"id": 42,
@@ -93,7 +95,7 @@ func TestEntityFormatter_newWhitelistingDeepFields(t *testing.T) {
 	expectedSupuChild := 1
 
 	var ok bool
-	f := NewEntityFormatter(&config.Backend{Whitelist: []string{"tupu.muku.supu", "tupu.muku.gutu.kugu"}})
+	f := NewEntityFormatter(&config.Backend{AllowList: []string{"tupu.muku.supu", "tupu.muku.gutu.kugu"}})
 	res := f.Format(sample)
 	var tupu map[string]interface{}
 	var muku map[string]interface{}
@@ -123,13 +125,28 @@ func TestEntityFormatter_newWhitelistingDeepFields(t *testing.T) {
 	}
 }
 
-func TestEntityFormatter_newblacklistingFilter(t *testing.T) {
+func TestEntityFormatter_newDenyFilter(t *testing.T) {
 	sample := Response{
 		Data: map[string]interface{}{
 			"supu": 42,
 			"tupu": false,
 			"foo":  "bar",
 			"a": map[string]interface{}{
+				"a": map[string]interface{}{
+					"b": true,
+					"c": 42,
+					"d": "tupu",
+					"deeper": map[string]interface{}{
+						"a": map[string]interface{}{
+							"aa": "deleteme deeper.a.aa",
+							"bb": "do not deleteme deeper.a.bb",
+						},
+						"b": map[string]interface{}{
+							"aa": "deleteme deeper.b.aa",
+							"bb": "do not deleteme deeper.b.bb",
+						},
+					},
+				},
 				"b": true,
 				"c": 42,
 				"d": "tupu",
@@ -142,12 +159,32 @@ func TestEntityFormatter_newblacklistingFilter(t *testing.T) {
 			"tupu": false,
 			"foo":  "bar",
 			"a": map[string]interface{}{
+				"a": map[string]interface{}{
+					"c": 42,
+					"d": "tupu",
+					"deeper": map[string]interface{}{
+						"a": map[string]interface{}{
+							"bb": "do not deleteme deeper.a.bb",
+						},
+						"b": map[string]interface{}{
+							"bb": "do not deleteme deeper.b.bb",
+						},
+					},
+				},
 				"d": "tupu",
 			},
 		},
 		IsComplete: true,
 	}
-	f := NewEntityFormatter(&config.Backend{Blacklist: []string{"supu", "a.b", "a.c", "foo.unknown"}})
+	f := NewEntityFormatter(&config.Backend{DenyList: []string{
+		"supu",
+		"a.b",
+		"a.c",
+		"foo.unknown",
+		"a.a.b",
+		"a.a.deeper.a.aa",
+		"a.a.deeper.b.aa",
+	}})
 	result := f.Format(sample)
 	if v, ok := result.Data["tupu"]; !ok || v != expected.Data["tupu"] {
 		t.Errorf("The formatter returned an unexpected result for the field tupu: %v\n", result)
@@ -163,11 +200,16 @@ func TestEntityFormatter_newblacklistingFilter(t *testing.T) {
 	if d, okk := tmp["d"]; !okk || d != "tupu" {
 		t.Errorf("The formatter returned an unexpected result for the field a.d: %v\n", result)
 	}
-	if len(tmp) != 1 {
+	if len(tmp) != 2 {
+		// a.a should exist , and a.d should exist
 		t.Errorf("The formatter returned an unexpected result size for the field a: %v\n", result)
 	}
 	if len(result.Data) != 3 || result.IsComplete != expected.IsComplete {
 		t.Errorf("The formatter returned an unexpected result size: %v\n", result)
+	}
+
+	if !reflect.DeepEqual(expected.Data, result.Data) {
+		t.Errorf("unexpected response. have: %+v, want: %+v", result.Data, expected.Data)
 	}
 }
 
@@ -384,7 +426,7 @@ func TestEntityFormatter_altogether(t *testing.T) {
 	}
 	f := NewEntityFormatter(&config.Backend{
 		Target:    "a",
-		Whitelist: []string{"d"},
+		AllowList: []string{"d"},
 		Group:     "group",
 		Mapping:   map[string]string{"d": "D"},
 	})
@@ -538,46 +580,49 @@ func TestNewFlatmapMiddleware(t *testing.T) {
 		},
 		IsComplete: true,
 	}
-	p := NewFlatmapMiddleware(&config.EndpointConfig{
-		ExtraConfig: config.ExtraConfig{
-			Namespace: map[string]interface{}{
-				flatmapKey: []interface{}{
-					map[string]interface{}{
-						"type": "del",
-						"args": []interface{}{"c"},
-					},
-					map[string]interface{}{
-						"type": "append",
-						"args": []interface{}{"y", "z"},
-					},
-					map[string]interface{}{
-						"type": "move",
-						"args": []interface{}{"supu", "SUPUUUUU"},
-					},
-					map[string]interface{}{
-						"type": "move",
-						"args": []interface{}{"a.b", "a.BOOOOO"},
-					},
-					map[string]interface{}{
-						"type": "del",
-						"args": []interface{}{"collection.*.b"},
-					},
-					map[string]interface{}{
-						"type": "del",
-						"args": []interface{}{"collection.*.d"},
-					},
-					map[string]interface{}{
-						"type": "del",
-						"args": []interface{}{"collection.*.e"},
-					},
-					map[string]interface{}{
-						"type": "move",
-						"args": []interface{}{"collection.*.c", "collection.*.x"},
+	p := NewFlatmapMiddleware(
+		logging.NoOp,
+		&config.EndpointConfig{
+			ExtraConfig: config.ExtraConfig{
+				Namespace: map[string]interface{}{
+					flatmapKey: []interface{}{
+						map[string]interface{}{
+							"type": "del",
+							"args": []interface{}{"c"},
+						},
+						map[string]interface{}{
+							"type": "append",
+							"args": []interface{}{"y", "z"},
+						},
+						map[string]interface{}{
+							"type": "move",
+							"args": []interface{}{"supu", "SUPUUUUU"},
+						},
+						map[string]interface{}{
+							"type": "move",
+							"args": []interface{}{"a.b", "a.BOOOOO"},
+						},
+						map[string]interface{}{
+							"type": "del",
+							"args": []interface{}{"collection.*.b"},
+						},
+						map[string]interface{}{
+							"type": "del",
+							"args": []interface{}{"collection.*.d"},
+						},
+						map[string]interface{}{
+							"type": "del",
+							"args": []interface{}{"collection.*.e"},
+						},
+						map[string]interface{}{
+							"type": "move",
+							"args": []interface{}{"collection.*.c", "collection.*.x"},
+						},
 					},
 				},
 			},
 		},
-	})(func(_ context.Context, _ *Request) (*Response, error) {
+	)(func(_ context.Context, _ *Request) (*Response, error) {
 		return &sample, nil
 	})
 

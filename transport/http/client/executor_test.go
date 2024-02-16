@@ -1,11 +1,12 @@
 // SPDX-License-Identifier: Apache-2.0
+
 package client
 
 import (
 	"bytes"
 	"context"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -20,7 +21,7 @@ func TestDefaultHTTPRequestExecutor(t *testing.T) {
 
 	re := DefaultHTTPRequestExecutor(NewHTTPClient)
 
-	req, _ := http.NewRequest("GET", ts.URL, ioutil.NopCloser(&bytes.Buffer{}))
+	req, _ := http.NewRequest("GET", ts.URL, io.NopCloser(&bytes.Buffer{}))
 
 	resp, err := re(context.Background(), req)
 

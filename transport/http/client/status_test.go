@@ -1,14 +1,15 @@
 // SPDX-License-Identifier: Apache-2.0
+
 package client
 
 import (
 	"bytes"
 	"context"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"testing"
 
-	"github.com/davron112/lura/config"
+	"github.com/davron112/lura/v2/config"
 )
 
 func TestDetailedHTTPStatusHandler(t *testing.T) {
@@ -25,7 +26,7 @@ func TestDetailedHTTPStatusHandler(t *testing.T) {
 	for _, code := range []int{http.StatusOK, http.StatusCreated} {
 		resp := &http.Response{
 			StatusCode: code,
-			Body:       ioutil.NopCloser(bytes.NewBufferString(`{"foo":"bar"}`)),
+			Body:       io.NopCloser(bytes.NewBufferString(`{"foo":"bar"}`)),
 		}
 
 		r, err := sh(context.Background(), resp)
@@ -46,7 +47,7 @@ func TestDetailedHTTPStatusHandler(t *testing.T) {
 
 		resp := &http.Response{
 			StatusCode: code,
-			Body:       ioutil.NopCloser(bytes.NewBufferString(msg)),
+			Body:       io.NopCloser(bytes.NewBufferString(msg)),
 		}
 
 		r, err := sh(context.Background(), resp)
@@ -56,7 +57,7 @@ func TestDetailedHTTPStatusHandler(t *testing.T) {
 			return
 		}
 
-		e, ok := err.(HTTPResponseError)
+		e, ok := err.(NamedHTTPResponseError)
 		if !ok {
 			t.Errorf("#%d unexpected error type %T: %s", i, err, err.Error())
 			return
@@ -85,7 +86,7 @@ func TestDefaultHTTPStatusHandler(t *testing.T) {
 	for _, code := range []int{http.StatusOK, http.StatusCreated} {
 		resp := &http.Response{
 			StatusCode: code,
-			Body:       ioutil.NopCloser(bytes.NewBufferString(`{"foo":"bar"}`)),
+			Body:       io.NopCloser(bytes.NewBufferString(`{"foo":"bar"}`)),
 		}
 
 		r, err := sh(context.Background(), resp)
@@ -106,7 +107,7 @@ func TestDefaultHTTPStatusHandler(t *testing.T) {
 
 		resp := &http.Response{
 			StatusCode: code,
-			Body:       ioutil.NopCloser(bytes.NewBufferString(msg)),
+			Body:       io.NopCloser(bytes.NewBufferString(msg)),
 		}
 
 		r, err := sh(context.Background(), resp)

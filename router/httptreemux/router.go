@@ -1,17 +1,21 @@
-/* Package httptreemux provides some basic implementations for building routers based on dimfeld/httptreemux
- */
 // SPDX-License-Identifier: Apache-2.0
+
+/*
+	Package httptreemux provides some basic implementations for building routers based on dimfeld/httptreemux
+*/
 package httptreemux
 
 import (
 	"net/http"
-	"strings"
 
-	"github.com/davron112/lura/logging"
-	"github.com/davron112/lura/proxy"
-	"github.com/davron112/lura/router"
-	"github.com/davron112/lura/router/mux"
-	"github.com/dimfeld/httptreemux"
+	"github.com/davron112/lura/v2/logging"
+	"github.com/davron112/lura/v2/proxy"
+	"github.com/davron112/lura/v2/router"
+	"github.com/davron112/lura/v2/router/mux"
+	"github.com/davron112/lura/v2/transport/http/server"
+	"github.com/dimfeld/httptreemux/v5"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 )
 
 // DefaultFactory returns a net/http mux router factory with the injected proxy factory and logger
@@ -28,14 +32,15 @@ func DefaultConfig(pf proxy.Factory, logger logging.Logger) mux.Config {
 		ProxyFactory:   pf,
 		Logger:         logger,
 		DebugPattern:   "/__debug/{params}",
-		RunServer:      router.RunServer,
+		RunServer:      server.RunServer,
 	}
 }
 
 func ParamsExtractor(r *http.Request) map[string]string {
 	params := map[string]string{}
+	title := cases.Title(language.Und)
 	for key, value := range httptreemux.ContextParams(r.Context()) {
-		params[strings.Title(key)] = value
+		params[title.String(key)] = value
 	}
 	return params
 }

@@ -1,12 +1,15 @@
 // SPDX-License-Identifier: Apache-2.0
+
 package proxy
 
 import (
 	"context"
 	"errors"
+	"reflect"
 	"testing"
 
-	"github.com/davron112/lura/config"
+	"github.com/davron112/lura/v2/config"
+	"github.com/davron112/lura/v2/logging"
 )
 
 func TestNewStaticMiddleware_multipleNext(t *testing.T) {
@@ -29,7 +32,7 @@ func TestNewStaticMiddleware_multipleNext(t *testing.T) {
 			},
 		},
 	}
-	mw := NewStaticMiddleware(&endpoint)
+	mw := NewStaticMiddleware(logging.NoOp, &endpoint)
 	mw(explosiveProxy(t), explosiveProxy(t))
 }
 
@@ -48,7 +51,7 @@ func TestNewStaticMiddleware_ok(t *testing.T) {
 			},
 		},
 	}
-	mw := NewStaticMiddleware(&endpoint)
+	mw := NewStaticMiddleware(logging.NoOp, &endpoint)
 
 	p := mw(dummyProxy(&Response{Data: map[string]interface{}{"supu": 42}, IsComplete: true}))
 	out1, err := p(context.Background(), &Request{})
@@ -101,6 +104,38 @@ type staticMatcherTestCase struct {
 	response *Response
 	err      error
 	expected bool
+}
+
+func TestNewStaticMiddleware(t *testing.T) {
+	data := map[string]interface{}{
+		"new-1": true,
+		"new-2": map[string]interface{}{"k1": 42},
+		"new-3": "42",
+	}
+	extra := config.ExtraConfig{
+		Namespace: map[string]interface{}{
+			staticKey: map[string]interface{}{
+				"data":     data,
+				"strategy": staticIfCompleteStrategy,
+			},
+		},
+	}
+
+	mw := NewStaticMiddleware(logging.NoOp, &config.EndpointConfig{ExtraConfig: extra})
+
+	p := mw(func(_ context.Context, r *Request) (*Response, error) {
+		return &Response{IsComplete: true}, nil
+	})
+
+	resp, err := p(context.Background(), nil)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	if !reflect.DeepEqual(data, resp.Data) {
+		t.Errorf("unexpected data: %+v", resp.Data)
+	}
 }
 
 func Test_staticAlwaysMatch(t *testing.T) {
@@ -311,7 +346,13 @@ func Test_staticIfIncompleteMatch(t *testing.T) {
 
 func testStaticMatcher(t *testing.T, marcher func(*Response, error) bool, testCase staticMatcherTestCase) {
 	if marcher(testCase.response, testCase.err) != testCase.expected {
-		t.Errorf("[%s] unexepecting match result (%v) with: %v, %v", testCase.name, testCase.expected, testCase.response, testCase.err)
+		t.Errorf(
+			"[%s] unexepecting match result (%v) with: %v, %v",
+			testCase.name,
+			testCase.expected,
+			testCase.response,
+			testCase.err,
+		)
 	}
 }
 

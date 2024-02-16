@@ -1,12 +1,15 @@
 // SPDX-License-Identifier: Apache-2.0
+
 package proxy
 
 import (
 	"context"
+	"fmt"
 	"strings"
 
 	"github.com/davron112/flatmap/tree"
-	"github.com/davron112/lura/config"
+	"github.com/davron112/lura/v2/config"
+	"github.com/davron112/lura/v2/logging"
 )
 
 // EntityFormatter formats the response data
@@ -36,10 +39,10 @@ func NewEntityFormatter(remote *config.Backend) EntityFormatter {
 	}
 
 	var propertyFilter propertyFilter
-	if len(remote.Whitelist) > 0 {
-		propertyFilter = newWhitelistingFilter(remote.Whitelist)
+	if len(remote.AllowList) > 0 {
+		propertyFilter = newAllowlistingFilter(remote.AllowList)
 	} else {
-		propertyFilter = newBlacklistingFilter(remote.Blacklist)
+		propertyFilter = newDenylistingFilter(remote.DenyList)
 	}
 	sanitizedMappings := make(map[string]string, len(remote.Mapping))
 	for i, m := range remote.Mapping {
@@ -91,18 +94,18 @@ func extractTarget(target string, entity *Response) {
 	}
 }
 
-func whitelistPrune(wlDict map[string]interface{}, inDict map[string]interface{}) bool {
+func AllowlistPrune(wlDict, inDict map[string]interface{}) bool {
 	canDelete := true
 	var deleteSibling bool
 	for k, v := range inDict {
 		deleteSibling = true
 		if subWl, ok := wlDict[k]; ok {
 			if subWlDict, okk := subWl.(map[string]interface{}); okk {
-				if subInDict, isDict := v.(map[string]interface{}); isDict && !whitelistPrune(subWlDict, subInDict) {
+				if subInDict, isDict := v.(map[string]interface{}); isDict && !AllowlistPrune(subWlDict, subInDict) {
 					deleteSibling = false
 				}
 			} else {
-				// whitelist leaf, maintain this branch
+				// Allowlist leaf, maintain this branch
 				deleteSibling = false
 			}
 		}
@@ -115,16 +118,16 @@ func whitelistPrune(wlDict map[string]interface{}, inDict map[string]interface{}
 	return canDelete
 }
 
-func newWhitelistingFilter(whitelist []string) propertyFilter {
+func newAllowlistingFilter(Allowlist []string) propertyFilter {
 	wlDict := make(map[string]interface{})
-	for _, k := range whitelist {
+	for _, k := range Allowlist {
 		wlFields := strings.Split(k, ".")
 		d := buildDictPath(wlDict, wlFields[:len(wlFields)-1])
 		d[wlFields[len(wlFields)-1]] = true
 	}
 
 	return func(entity *Response) {
-		if whitelistPrune(wlDict, entity.Data) {
+		if AllowlistPrune(wlDict, entity.Data) {
 			for k := range entity.Data {
 				delete(entity.Data, k)
 			}
@@ -152,43 +155,73 @@ func buildDictPath(accumulator map[string]interface{}, fields []string) map[stri
 	return p
 }
 
-func newBlacklistingFilter(blacklist []string) propertyFilter {
-	bl := make(map[string][]string, len(blacklist))
-	for _, key := range blacklist {
-		keys := strings.Split(key, ".")
-		if len(keys) > 1 {
-			if sub, ok := bl[keys[0]]; ok {
-				bl[keys[0]] = append(sub, keys[1])
-			} else {
-				bl[keys[0]] = []string{keys[1]}
-			}
-		} else {
-			bl[keys[0]] = []string{}
-		}
+func buildDenyTree(path []string, tree map[string]interface{}) {
+	if len(path) == 0 {
+		return
+	}
+	n := path[0]
+	if len(path) == 1 {
+		// this is the node to be deleted, so, any other child
+		// that is under this node, does not need to be visited:
+		// we "delete" any descendant from this node
+		tree[n] = nil
+		return
 	}
 
-	return func(entity *Response) {
-		for k, sub := range bl {
-			if len(sub) == 0 {
-				delete(entity.Data, k)
-			} else {
-				if tmp := blacklistFilterSub(entity.Data[k], sub); len(tmp) > 0 {
-					entity.Data[k] = tmp
-				}
-			}
+	if k, ok := tree[n]; ok {
+		if k == nil {
+			// all this child should be deleted, so, no matter
+			// if the entry says to delete some extra child..
+			// everything will be deleted
+			return
 		}
+		childTree, ok := k.(map[string]interface{})
+		if !ok {
+			// this should never happen if this algorithm is correct
+			tree[n] = nil
+			return
+		}
+		buildDenyTree(path[1:], childTree)
+		return
+	}
+
+	// it the key does not exist, we need to keep building the children,
+	// and at this point we know that path is at least len = 2, and that
+	// tree[n] does not exist
+	childTree := make(map[string]interface{}, 1)
+	tree[n] = childTree
+	buildDenyTree(path[1:], childTree)
+}
+
+func recDelete(ref map[string]interface{}, v interface{}) {
+	m, ok := v.(map[string]interface{})
+	if !ok || m == nil {
+		return
+	}
+
+	for rk, rv := range ref {
+		dv, dok := m[rk]
+		if !dok {
+			continue
+		}
+		if rv == nil {
+			delete(m, rk)
+			continue
+		}
+		recDelete(rv.(map[string]interface{}), dv)
 	}
 }
 
-func blacklistFilterSub(v interface{}, blacklist []string) map[string]interface{} {
-	tmp, ok := v.(map[string]interface{})
-	if !ok {
-		return map[string]interface{}{}
-	}
+func newDenylistingFilter(blacklist []string) propertyFilter {
+	bl := make(map[string]interface{}, len(blacklist))
 	for _, key := range blacklist {
-		delete(tmp, key)
+		keys := strings.Split(key, ".")
+		buildDenyTree(keys, bl)
 	}
-	return tmp
+
+	return func(entity *Response) {
+		recDelete(bl, entity.Data)
+	}
 }
 
 const flatmapKey = "flatmap_filter"
@@ -240,14 +273,14 @@ func (e flatmapFormatter) processOps(entity *Response) {
 	entity.Data, _ = flatten.Get([]string{}).(map[string]interface{})
 }
 
-func newFlatmapFormatter(cfg config.ExtraConfig, target, group string) EntityFormatter {
+func newFlatmapFormatter(cfg config.ExtraConfig, target, group string) *flatmapFormatter {
 	if v, ok := cfg[Namespace]; ok {
 		if e, ok := v.(map[string]interface{}); ok {
 			if vs, ok := e[flatmapKey].([]interface{}); ok {
 				if len(vs) == 0 {
 					return nil
 				}
-				ops := []flatmapOp{}
+				var ops []flatmapOp
 				for _, v := range vs {
 					m, ok := v.(map[string]interface{})
 					if !ok {
@@ -284,7 +317,7 @@ func newFlatmapFormatter(cfg config.ExtraConfig, target, group string) EntityFor
 }
 
 // NewFlatmapMiddleware creates a proxy middleware that enables applying flatmap operations to the proxy response
-func NewFlatmapMiddleware(cfg *config.EndpointConfig) Middleware {
+func NewFlatmapMiddleware(logger logging.Logger, cfg *config.EndpointConfig) Middleware {
 	formatter := newFlatmapFormatter(cfg.ExtraConfig, "", "")
 	return func(next ...Proxy) Proxy {
 		if len(next) != 1 {
@@ -294,6 +327,14 @@ func NewFlatmapMiddleware(cfg *config.EndpointConfig) Middleware {
 		if formatter == nil {
 			return next[0]
 		}
+
+		logger.Debug(
+			fmt.Sprintf(
+				"[ENDPOINT: %s][Flatmap] Adding flatmap manipulator with %d operations",
+				cfg.Endpoint,
+				len(formatter.Ops),
+			),
+		)
 
 		return func(ctx context.Context, request *Request) (*Response, error) {
 			resp, err := next[0](ctx, request)

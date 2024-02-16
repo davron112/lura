@@ -1,19 +1,20 @@
-/* Package negroni provides some basic implementations for building routers based on urfave/negroni
- */
 // SPDX-License-Identifier: Apache-2.0
+
+/*
+	Package negroni provides some basic implementations for building routers based on urfave/negroni
+*/
 package negroni
 
 import (
 	"net/http"
 
+	"github.com/davron112/lura/v2/logging"
+	"github.com/davron112/lura/v2/proxy"
+	"github.com/davron112/lura/v2/router"
+	luragorilla "github.com/davron112/lura/v2/router/gorilla"
+	"github.com/davron112/lura/v2/router/mux"
 	gorilla "github.com/gorilla/mux"
-	"github.com/urfave/negroni"
-
-	"github.com/davron112/lura/logging"
-	"github.com/davron112/lura/proxy"
-	"github.com/davron112/lura/router"
-	luragorilla "github.com/davron112/lura/router/gorilla"
-	"github.com/davron112/lura/router/mux"
+	"github.com/urfave/negroni/v2"
 )
 
 // DefaultFactory returns a net/http mux router factory with the injected proxy factory and logger

@@ -1,18 +1,34 @@
 // SPDX-License-Identifier: Apache-2.0
+
 package proxy
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
 
-	"github.com/davron112/lura/config"
+	"github.com/davron112/lura/v2/config"
+	"github.com/davron112/lura/v2/logging"
 )
 
 // NewStaticMiddleware creates proxy middleware for adding static values to the processed responses
-func NewStaticMiddleware(endpointConfig *config.EndpointConfig) Middleware {
+func NewStaticMiddleware(logger logging.Logger, endpointConfig *config.EndpointConfig) Middleware {
 	cfg, ok := getStaticMiddlewareCfg(endpointConfig.ExtraConfig)
 	if !ok {
 		return EmptyMiddleware
 	}
+
+	b, _ := json.Marshal(cfg.Data)
+
+	logger.Debug(
+		fmt.Sprintf(
+			"[ENDPOINT: %s][Static] Adding a static response using '%s' strategy. Data: %s",
+			endpointConfig.Endpoint,
+			cfg.Strategy,
+			string(b),
+		),
+	)
+
 	return func(next ...Proxy) Proxy {
 		if len(next) > 1 {
 			panic(ErrTooManyProxies)
@@ -25,6 +41,8 @@ func NewStaticMiddleware(endpointConfig *config.EndpointConfig) Middleware {
 
 			if result == nil {
 				result = &Response{Data: map[string]interface{}{}}
+			} else if result.Data == nil {
+				result.Data = map[string]interface{}{}
 			}
 
 			for k, v := range cfg.Data {

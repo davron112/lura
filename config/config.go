@@ -1,6 +1,8 @@
-/* Package config defines the config structs and some config parser interfaces and implementations
- */
 // SPDX-License-Identifier: Apache-2.0
+
+/*
+Package config defines the config structs and some config parser interfaces and implementations
+*/
 package config
 
 import (
@@ -9,12 +11,16 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net/http"
+	"net/textproto"
 	"regexp"
 	"sort"
 	"strings"
 	"time"
 
-	"github.com/davron112/lura/encoding"
+	"github.com/davron112/lura/v2/encoding"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 )
 
 const (
@@ -28,7 +34,7 @@ const (
 	DefaultTimeout = 2 * time.Second
 
 	// ConfigVersion is the current version of the config struct
-	ConfigVersion = 2
+	ConfigVersion = 3
 )
 
 // RoutingPattern to use during route conversion. By default, use the colon router pattern
@@ -40,6 +46,8 @@ type ServiceConfig struct {
 	Name string `mapstructure:"name"`
 	// set of endpoint definitions
 	Endpoints []*EndpointConfig `mapstructure:"endpoints"`
+	// set of async agent definitions
+	AsyncAgents []*AsyncAgent `mapstructure:"async_agent"`
 	// defafult timeout
 	Timeout time.Duration `mapstructure:"timeout"`
 	// default TTL for GET
@@ -150,8 +158,50 @@ type ServiceConfig struct {
 	TLS *TLS `mapstructure:"tls"`
 
 	// run lura in debug mode
-	Debug     bool
+	Debug     bool `mapstructure:"debug_endpoint"`
+	Echo      bool `mapstructure:"echo_endpoint"`
 	uriParser URIParser
+
+	// SequentialStart flags if the agents should be started sequentially
+	// before starting the router
+	SequentialStart bool `mapstructure:"sequential_start"`
+
+	// AllowInsecureConnections sets the http client tls configuration to allow
+	// insecure connections to the backends for development (enables InsecureSkipVerify)
+	AllowInsecureConnections bool `mapstructure:"allow_insecure_connections"`
+
+	// ClientTLS is used to configure the http default transport
+	// with TLS parameters
+	ClientTLS *ClientTLS `mapstructure:"client_tls"`
+}
+
+// AsyncAgent defines the configuration of a single subscriber/consumer to be initialized
+// and maintained by the lura service
+type AsyncAgent struct {
+	Name       string     `mapstructure:"name"`
+	Connection Connection `mapstructure:"connection"`
+	Consumer   Consumer   `mapstructure:"consumer"`
+	// the encoding format
+	Encoding string `mapstructure:"encoding"`
+	// set of definitions of the backends to be linked to this endpoint
+	Backend []*Backend `mapstructure:"backend"`
+
+	// Endpoint Extra configuration for customized behaviour
+	ExtraConfig ExtraConfig `mapstructure:"extra_config"`
+}
+
+type Consumer struct {
+	// timeout of the pipe defined by this subscriber
+	Timeout time.Duration `mapstructure:"timeout"`
+	Workers int           `mapstructure:"workers"`
+	Topic   string        `mapstructure:"topic"`
+	MaxRate float64       `mapstructure:"max_rate"`
+}
+
+type Connection struct {
+	MaxRetries      int           `mapstructure:"max_retries"`
+	BackoffStrategy string        `mapstructure:"backoff_strategy"`
+	HealthInterval  time.Duration `mapstructure:"health_interval"`
 }
 
 // EndpointConfig defines the configuration of a single endpoint to be exposed
@@ -170,11 +220,11 @@ type EndpointConfig struct {
 	// duration of the cache header
 	CacheTTL time.Duration `mapstructure:"cache_ttl"`
 	// list of query string params to be extracted from the URI
-	QueryString []string `mapstructure:"querystring_params"`
+	QueryString []string `mapstructure:"input_query_strings"`
 	// Endpoint Extra configuration for customized behaviour
 	ExtraConfig ExtraConfig `mapstructure:"extra_config"`
 	// HeadersToPass defines the list of headers to pass to the backends
-	HeadersToPass []string `mapstructure:"headers_to_pass"`
+	HeadersToPass []string `mapstructure:"input_headers"`
 	// OutputEncoding defines the encoding strategy to use for the endpoint responses
 	OutputEncoding string `mapstructure:"output_encoding"`
 }
@@ -193,12 +243,6 @@ type Backend struct {
 	HostSanitizationDisabled bool `mapstructure:"disable_host_sanitize"`
 	// URLPattern is the URL pattern to use to locate the resource to be consumed
 	URLPattern string `mapstructure:"url_pattern"`
-	// Deprecated: use DenyList
-	// Blacklist is a set of response fields to remove. If empty, the filter id not used
-	Blacklist []string `mapstructure:"blacklist"`
-	// Deprecated: use AllowList
-	// Whitelist is a set of response fields to allow. If empty, the filter id not used
-	Whitelist []string `mapstructure:"whitelist"`
 	// AllowList is a set of response fields to allow. If empty, the filter id not used
 	AllowList []string `mapstructure:"allow"`
 	// DenyList is a set of response fields to remove. If empty, the filter id not used
@@ -213,6 +257,8 @@ type Backend struct {
 	Target string `mapstructure:"target"`
 	// name of the service discovery driver to use
 	SD string `mapstructure:"sd"`
+	// scheme to use for servers fetched from
+	SDScheme string `mapstructure:"sd_scheme"`
 
 	// list of keys to be replaced in the URLPattern
 	URLKeys []string
@@ -224,6 +270,8 @@ type Backend struct {
 	Decoder encoding.Decoder `json:"-"`
 	// Backend Extra configuration for customized behaviours
 	ExtraConfig ExtraConfig `mapstructure:"extra_config"`
+	// HeadersToPass defines the list of headers to pass to this backend
+	HeadersToPass []string `mapstructure:"input_headers"`
 }
 
 // Plugin contains the config required by the plugin module
@@ -237,12 +285,25 @@ type TLS struct {
 	IsDisabled               bool     `mapstructure:"disabled"`
 	PublicKey                string   `mapstructure:"public_key"`
 	PrivateKey               string   `mapstructure:"private_key"`
+	CaCerts                  []string `mapstructure:"ca_certs"`
 	MinVersion               string   `mapstructure:"min_version"`
 	MaxVersion               string   `mapstructure:"max_version"`
 	CurvePreferences         []uint16 `mapstructure:"curve_preferences"`
 	PreferServerCipherSuites bool     `mapstructure:"prefer_server_cipher_suites"`
 	CipherSuites             []uint16 `mapstructure:"cipher_suites"`
 	EnableMTLS               bool     `mapstructure:"enable_mtls"`
+	DisableSystemCaPool      bool     `mapstructure:"disable_system_ca_pool"`
+}
+
+// ClientTLS defines the configuration params for an HTTP Client
+type ClientTLS struct {
+	AllowInsecureConnections bool     `mapstructure:"allow_insecure_connections"`
+	CaCerts                  []string `mapstructure:"ca_certs"`
+	DisableSystemCaPool      bool     `mapstructure:"disable_system_ca_pool"`
+	MinVersion               string   `mapstructure:"min_version"`
+	MaxVersion               string   `mapstructure:"max_version"`
+	CurvePreferences         []uint16 `mapstructure:"curve_preferences"`
+	CipherSuites             []uint16 `mapstructure:"cipher_suites"`
 }
 
 // ExtraConfig is a type to store extra configurations for customized behaviours
@@ -250,8 +311,7 @@ type ExtraConfig map[string]interface{}
 
 func (e *ExtraConfig) sanitize() {
 	for module, extra := range *e {
-		switch extra := extra.(type) {
-		case map[interface{}]interface{}:
+		if extra, ok := extra.(map[interface{}]interface{}); ok {
 			sanitized := map[string]interface{}{}
 			for k, v := range extra {
 				sanitized[fmt.Sprintf("%v", k)] = v
@@ -261,23 +321,22 @@ func (e *ExtraConfig) sanitize() {
 	}
 }
 
-// ConfigGetter is a function for parsing ExtraConfig into a previously know type
-type ConfigGetter func(ExtraConfig) interface{}
+func (e *ExtraConfig) Normalize() {
+	for module := range *e {
+		if alias, ok := ExtraConfigAlias[module]; ok {
+			(*e)[alias] = (*e)[module]
+			delete(*e, module)
+		}
+	}
+}
 
-// DefaultConfigGetter is the Default implementation for ConfigGetter, it just returns the ExtraConfig map.
-func DefaultConfigGetter(extra ExtraConfig) interface{} { return extra }
-
-const defaultNamespace = "github.com/davron112/krakend/config"
-
-// ConfigGetters map than match namespaces and ConfigGetter so the components knows which type to expect returned by the
-// ConfigGetter ie: if we look for the defaultNamespace in the map, we will get the DefaultConfigGetter implementation
-// which will return a ExtraConfig when called
-var ConfigGetters = map[string]ConfigGetter{defaultNamespace: DefaultConfigGetter}
+// ExtraConfigAlias is the set of alias to accept as namespace
+var ExtraConfigAlias = map[string]string{}
 
 var (
-	simpleURLKeysPattern    = regexp.MustCompile(`\{([a-zA-Z\-_0-9\.]+)\}`)
-	sequentialParamsPattern = regexp.MustCompile(`^(resp[\d]+_.*)?(JWT\.([\w\-\.]*))?$`)
-	debugPattern            = "^[^/]|/__debug(/.*)?$"
+	simpleURLKeysPattern    = regexp.MustCompile(`\{([\w\-\.:/]+)\}`)
+	sequentialParamsPattern = regexp.MustCompile(`^(resp[\d]+_.+)?(JWT\.([\w\-\.:/]+))?$`)
+	invalidPattern          = `^[^/]|\*.|/__(debug|echo|health)(/.*)?$`
 	errInvalidHost          = errors.New("invalid host")
 	errInvalidNoOpEncoding  = errors.New("can not use NoOp encoding with more than one backends connected to the same endpoint")
 	defaultPort             = 8080
@@ -313,7 +372,25 @@ func (s *ServiceConfig) Init() error {
 
 	s.initGlobalParams()
 
+	s.initAsyncAgents()
+
 	return s.initEndpoints()
+}
+
+func (s *ServiceConfig) Normalize() {
+	s.ExtraConfig.Normalize()
+	for _, e := range s.Endpoints {
+		e.ExtraConfig.Normalize()
+		for _, b := range e.Backend {
+			b.ExtraConfig.Normalize()
+		}
+	}
+	for _, a := range s.AsyncAgents {
+		a.ExtraConfig.Normalize()
+		for _, b := range a.Backend {
+			b.ExtraConfig.Normalize()
+		}
+	}
 }
 
 func (s *ServiceConfig) initGlobalParams() {
@@ -328,8 +405,31 @@ func (s *ServiceConfig) initGlobalParams() {
 	}
 
 	s.Host = s.uriParser.CleanHosts(s.Host)
-
 	s.ExtraConfig.sanitize()
+}
+
+func (s *ServiceConfig) initAsyncAgents() error {
+	for i, e := range s.AsyncAgents {
+		s.initAsyncAgentDefaults(i)
+
+		e.ExtraConfig.sanitize()
+
+		for _, b := range e.Backend {
+			if len(b.Host) == 0 {
+				b.Host = s.Host
+			} else if !b.HostSanitizationDisabled {
+				b.Host = s.uriParser.CleanHosts(b.Host)
+			}
+			if b.Method == "" {
+				b.Method = http.MethodGet
+			}
+			b.Timeout = e.Consumer.Timeout
+			b.Decoder = encoding.GetRegister().Get(strings.ToLower(b.Encoding))(b.IsCollection)
+
+			b.ExtraConfig.sanitize()
+		}
+	}
+	return nil
 }
 
 func (s *ServiceConfig) initEndpoints() error {
@@ -338,6 +438,10 @@ func (s *ServiceConfig) initEndpoints() error {
 
 		if err := e.validate(); err != nil {
 			return err
+		}
+
+		for i := range e.HeadersToPass {
+			e.HeadersToPass[i] = textproto.CanonicalMIMEHeaderKey(e.HeadersToPass[i])
 		}
 
 		inputParams := s.extractPlaceHoldersFromURLTemplate(e.Endpoint, s.paramExtractionPattern())
@@ -357,15 +461,6 @@ func (s *ServiceConfig) initEndpoints() error {
 		e.ExtraConfig.sanitize()
 
 		for j, b := range e.Backend {
-			// TODO: remove when white/black lists are deprecated
-			if len(b.AllowList) != 0 && len(b.Whitelist) == 0 {
-				b.Whitelist = b.AllowList
-			}
-
-			if len(b.DenyList) != 0 && len(b.Blacklist) == 0 {
-				b.Blacklist = b.DenyList
-			}
-
 			s.initBackendDefaults(i, j)
 
 			if err := s.initBackendURLMappings(i, j, inputSet); err != nil {
@@ -385,7 +480,7 @@ func (s *ServiceConfig) paramExtractionPattern() *regexp.Regexp {
 	return endpointURLKeysPattern
 }
 
-func (s *ServiceConfig) extractPlaceHoldersFromURLTemplate(subject string, pattern *regexp.Regexp) []string {
+func (*ServiceConfig) extractPlaceHoldersFromURLTemplate(subject string, pattern *regexp.Regexp) []string {
 	matches := pattern.FindAllStringSubmatch(subject, -1)
 	keys := make([]string, len(matches))
 	for k, v := range matches {
@@ -417,6 +512,19 @@ func (s *ServiceConfig) initEndpointDefaults(e int) {
 	}
 }
 
+func (s *ServiceConfig) initAsyncAgentDefaults(e int) {
+	agent := s.AsyncAgents[e]
+	if s.Timeout != 0 && agent.Consumer.Timeout == 0 {
+		agent.Consumer.Timeout = s.Timeout
+	}
+	if agent.Consumer.Workers < 1 {
+		agent.Consumer.Workers = 1
+	}
+	if agent.Connection.HealthInterval < time.Second {
+		agent.Connection.HealthInterval = time.Second
+	}
+}
+
 func (s *ServiceConfig) initBackendDefaults(e, b int) {
 	endpoint := s.Endpoints[e]
 	backend := endpoint.Backend[b]
@@ -428,9 +536,19 @@ func (s *ServiceConfig) initBackendDefaults(e, b int) {
 	if backend.Method == "" {
 		backend.Method = endpoint.Method
 	}
+	if endpoint.OutputEncoding == encoding.NOOP {
+		backend.Encoding = encoding.NOOP
+	}
 	backend.Timeout = endpoint.Timeout
 	backend.ConcurrentCalls = endpoint.ConcurrentCalls
-	backend.Decoder = encoding.Get(strings.ToLower(backend.Encoding))(backend.IsCollection)
+	backend.Decoder = encoding.GetRegister().Get(strings.ToLower(backend.Encoding))(backend.IsCollection)
+
+	for i := range backend.HeadersToPass {
+		backend.HeadersToPass[i] = textproto.CanonicalMIMEHeaderKey(backend.HeadersToPass[i])
+	}
+	if backend.SDScheme == "" {
+		backend.SDScheme = "http"
+	}
 }
 
 func (s *ServiceConfig) initBackendURLMappings(e, b int, inputParams map[string]interface{}) error {
@@ -452,6 +570,7 @@ func (s *ServiceConfig) initBackendURLMappings(e, b int, inputParams map[string]
 		}
 	}
 
+	title := cases.Title(language.Und)
 	backend.URLKeys = []string{}
 	for _, output := range outputParams {
 		if !sequentialParamsPattern.MatchString(output) {
@@ -466,8 +585,8 @@ func (s *ServiceConfig) initBackendURLMappings(e, b int, inputParams map[string]
 				}
 			}
 		}
-		key := strings.Title(output[:1]) + output[1:]
-		backend.URLPattern = strings.Replace(backend.URLPattern, "{"+output+"}", "{{."+key+"}}", -1)
+		key := title.String(output[:1]) + output[1:]
+		backend.URLPattern = strings.ReplaceAll(backend.URLPattern, "{"+output+"}", "{{."+key+"}}")
 		backend.URLKeys = append(backend.URLKeys, key)
 	}
 	return nil
@@ -503,7 +622,7 @@ func uniqueOutput(output []string) ([]string, int) {
 }
 
 func (e *EndpointConfig) validate() error {
-	matched, err := regexp.MatchString(debugPattern, e.Endpoint)
+	matched, err := regexp.MatchString(invalidPattern, e.Endpoint)
 	if err != nil {
 		return &EndpointMatchError{
 			Err:    err,
@@ -531,7 +650,7 @@ type EndpointMatchError struct {
 
 // Error returns a string representation of the EndpointMatchError
 func (e *EndpointMatchError) Error() string {
-	return fmt.Sprintf("ERROR: parsing the endpoint url '%s %s': %s. Ignoring", e.Method, e.Path, e.Err.Error())
+	return fmt.Sprintf("ignoring the '%s %s' endpoint due to a parsing error: %s", e.Method, e.Path, e.Err.Error())
 }
 
 // NoBackendsError is the error returned by the configuration init process when an endpoint
@@ -543,11 +662,11 @@ type NoBackendsError struct {
 
 // Error returns a string representation of the NoBackendsError
 func (n *NoBackendsError) Error() string {
-	return "WARNING: the '" + n.Method + " " + n.Path + "' endpoint has 0 backends defined! Ignoring"
+	return "ignoring the '" + n.Method + " " + n.Path + "' endpoint, since it has 0 backends defined!"
 }
 
 // UnsupportedVersionError is the error returned by the configuration init process when the configuration
-// version is not supoprted
+// version is not supported
 type UnsupportedVersionError struct {
 	Have int
 	Want int
@@ -555,7 +674,7 @@ type UnsupportedVersionError struct {
 
 // Error returns a string representation of the UnsupportedVersionError
 func (u *UnsupportedVersionError) Error() string {
-	return fmt.Sprintf("Unsupported version: %d (want: %d)", u.Have, u.Want)
+	return fmt.Sprintf("unsupported version: %d (want: %d)", u.Have, u.Want)
 }
 
 // EndpointPathError is the error returned by the configuration init process when an endpoint
@@ -567,7 +686,7 @@ type EndpointPathError struct {
 
 // Error returns a string representation of the EndpointPathError
 func (e *EndpointPathError) Error() string {
-	return "ERROR: the endpoint url path '" + e.Method + " " + e.Path + "' is not a valid one!!! Ignoring"
+	return "ignoring the '" + e.Method + " " + e.Path + "' endpoint, since it is invalid!!!"
 }
 
 // UndefinedOutputParamError is the error returned by the configuration init process when an output
@@ -584,7 +703,7 @@ type UndefinedOutputParamError struct {
 // Error returns a string representation of the UndefinedOutputParamError
 func (u *UndefinedOutputParamError) Error() string {
 	return fmt.Sprintf(
-		"Undefined output param '%s'! endpoint: %s %s, backend: %d. input: %v, output: %v",
+		"undefined output param '%s'! endpoint: %s %s, backend: %d. input: %v, output: %v",
 		u.Param,
 		u.Method,
 		u.Endpoint,
@@ -614,4 +733,13 @@ func (w *WrongNumberOfParamsError) Error() string {
 		w.InputParams,
 		w.OutputParams,
 	)
+}
+
+func SetSequentialParamsPattern(pattern string) error {
+	re, err := regexp.Compile(pattern)
+	if err != nil {
+		return err
+	}
+	sequentialParamsPattern = re
+	return nil
 }

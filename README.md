@@ -2,11 +2,12 @@
 
 # The Lura Project framework
 
-![Go Report Card](https://goreportcard.com/badge/github.com/davron112/lura)
+[![Go Report Card](https://goreportcard.com/badge/github.com/davron112/lura)](https://goreportcard.com/report/github.com/davron112/lura)
 [![GoDoc](https://godoc.org/github.com/davron112/lura?status.svg)](https://godoc.org/github.com/davron112/lura)
 ![CII Best Practices](https://bestpractices.coreinfrastructure.org/projects/3151/badge)
-![Docker Pulls](https://img.shields.io/docker/pulls/davron112/krakend.svg)
+![Docker Pulls](https://img.shields.io/docker/pulls/devopsfaith/krakend.svg)
 [![Slack Widget](https://img.shields.io/badge/join-us%20on%20slack-gray.svg?longCache=true&logo=slack&colorB=red)](https://gophers.slack.com/messages/lura)
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fluraproject%2Flura.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fluraproject%2Flura?ref=badge_shield)
 
 
 An open framework to assemble ultra performance API Gateways with middlewares; formerly known as _KrakenD framework_, and core service of the [KrakenD API Gateway](http://www.krakend.io).
@@ -52,7 +53,7 @@ If you need a fully functional API Gateway you can [download the KrakenD binary 
 
 
 ## Library Usage
-The Lura project is presented as a **Go library** that you can include in your own Go application to build a powerful proxy or API gateway. In order to get you started several examples of implementations are included in the `examples` folder.
+The Lura project is presented as a **Go library** that you can include in your own Go application to build a powerful proxy or API gateway. For a complete example, check the [KrakenD CE repository](https://github.com/davron112/krakend-ce).
 
 Of course, you will need [Go installed](https://golang.org/doc/install) in your system to compile the code.
 
@@ -70,7 +71,7 @@ A ready to use example:
         "github.com/davron112/lura/logging"
         "github.com/davron112/lura/proxy"
         "github.com/davron112/lura/router/gin"
-    )
+)
 
     func main() {
         port := flag.Int("p", 0, "Port of the service")
@@ -99,18 +100,6 @@ A ready to use example:
 
 Visit the [framework overview](/docs/OVERVIEW.md) for more details about the components of the Lura project.
 
-### Examples
-
-You can find some implementation examples on [this KrakenD repository](https://github.com/davron112/krakend-examples)
-
-1. [gin router](https://github.com/davron112/krakend-examples/tree/master/gin/)
-2. [mux router](https://github.com/davron112/krakend-examples/tree/master/mux/)
-3. [gorilla router](https://github.com/davron112/krakend-examples/tree/master/gorilla/)
-4. [negroni middlewares](https://github.com/davron112/krakend-examples/tree/master/negroni/)
-5. [dns srv service discovery](https://github.com/davron112/krakend-examples/tree/master/dns/)
-6. [jwt middlewares](https://github.com/davron112/krakend-examples/tree/master/jwt/)
-7. [httpcache based proxies](https://github.com/davron112/krakend-examples/tree/master/httpcache/)
-
 ## Configuration file
 
 [Lura config file](/docs/CONFIG.md)
@@ -123,7 +112,7 @@ Check out the [benchmark results](/docs/BENCHMARKS.md) of several Lura component
 We are always happy to receive contributions. If you have questions, suggestions, bugs please open an issue.
 If you want to submit the code, create the issue and send us a pull request for review.
 
-Read [CONTRIBUITING.md](/CONTRIBUTING.md) for more information.
+Read [CONTRIBUTING.md](/CONTRIBUTING.md) for more information.
 
 
 ## Want more?
@@ -132,3 +121,7 @@ Read [CONTRIBUITING.md](/CONTRIBUTING.md) for more information.
 - **Read the [documentation](/docs/OVERVIEW.md)**
 
 Enjoy Lura!
+
+
+## License
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fluraproject%2Flura.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fluraproject%2Flura?ref=badge_large)

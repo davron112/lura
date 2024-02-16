@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
+
 package config
 
 import (
@@ -60,7 +61,7 @@ func (u URI) GetEndpointPath(path string, params []string) string {
 	if u == ColonRouterPatternBuilder {
 		for p := range params {
 			parts := strings.Split(result, "?")
-			parts[0] = strings.Replace(parts[0], "{"+params[p]+"}", ":"+params[p], -1)
+			parts[0] = strings.ReplaceAll(parts[0], "{"+params[p]+"}", ":"+params[p])
 			result = strings.Join(parts, "?")
 		}
 	}

@@ -1,6 +1,8 @@
+//go:build integration || !race
 // +build integration !race
 
 // SPDX-License-Identifier: Apache-2.0
+
 package plugin
 
 import (
@@ -9,20 +11,20 @@ import (
 	"testing"
 )
 
-func TestLoadModifiers(t *testing.T) {
-	total, err := LoadModifiers("./tests", ".so", RegisterModifier)
+func TestLoad(t *testing.T) {
+	total, err := Load("./tests", ".so", RegisterModifier)
 	if err != nil {
 		t.Error(err.Error())
 		t.Fail()
 	}
-	if total != 1 {
-		t.Errorf("unexpected number of loaded plugins!. have %d, want 1", total)
+	if total != 2 {
+		t.Errorf("unexpected number of loaded plugins!. have %d, want 2", total)
 	}
 
-	modFactory, ok := GetRequestModifier("lura-request-modifier-example")
+	modFactory, ok := GetRequestModifier("lura-request-modifier-example-request")
 	if !ok {
 		t.Error("modifier factory not found in the register")
-		t.Fail()
+		return
 	}
 
 	modifier := modFactory(map[string]interface{}{})
@@ -32,13 +34,13 @@ func TestLoadModifiers(t *testing.T) {
 	tmp, err := modifier(input)
 	if err != nil {
 		t.Error(err.Error())
-		t.Fail()
+		return
 	}
 
 	output, ok := tmp.(RequestWrapper)
 	if !ok {
 		t.Error("unexpected result type")
-		t.Fail()
+		return
 	}
 
 	if res := output.Path(); res != "/bar/fooo" {

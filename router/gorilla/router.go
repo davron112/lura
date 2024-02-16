@@ -1,18 +1,21 @@
-/* Package gorilla provides some basic implementations for building routers based on gorilla/mux
- */
 // SPDX-License-Identifier: Apache-2.0
+
+/*
+Package gorilla provides some basic implementations for building routers based on gorilla/mux
+*/
 package gorilla
 
 import (
 	"net/http"
-	"strings"
 
+	"github.com/davron112/lura/v2/logging"
+	"github.com/davron112/lura/v2/proxy"
+	"github.com/davron112/lura/v2/router"
+	"github.com/davron112/lura/v2/router/mux"
+	"github.com/davron112/lura/v2/transport/http/server"
 	gorilla "github.com/gorilla/mux"
-
-	"github.com/davron112/lura/logging"
-	"github.com/davron112/lura/proxy"
-	"github.com/davron112/lura/router"
-	"github.com/davron112/lura/router/mux"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 )
 
 // DefaultFactory returns a net/http mux router factory with the injected proxy factory and logger
@@ -29,14 +32,16 @@ func DefaultConfig(pf proxy.Factory, logger logging.Logger) mux.Config {
 		ProxyFactory:   pf,
 		Logger:         logger,
 		DebugPattern:   "/__debug/{params}",
-		RunServer:      router.RunServer,
+		EchoPattern:    "/__echo/{params}",
+		RunServer:      server.RunServer,
 	}
 }
 
 func gorillaParamsExtractor(r *http.Request) map[string]string {
 	params := map[string]string{}
+	title := cases.Title(language.Und)
 	for key, value := range gorilla.Vars(r) {
-		params[strings.Title(key)] = value
+		params[title.String(key)] = value
 	}
 	return params
 }

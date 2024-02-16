@@ -1,18 +1,18 @@
 // SPDX-License-Identifier: Apache-2.0
+
 package gin
 
 import (
 	"context"
 	"fmt"
 	"net/textproto"
-	"strings"
 
+	"github.com/davron112/lura/v2/config"
+	"github.com/davron112/lura/v2/core"
+	"github.com/davron112/lura/v2/logging"
+	"github.com/davron112/lura/v2/proxy"
+	"github.com/davron112/lura/v2/transport/http/server"
 	"github.com/gin-gonic/gin"
-
-	"github.com/davron112/lura/config"
-	"github.com/davron112/lura/core"
-	"github.com/davron112/lura/proxy"
-	"github.com/davron112/lura/router"
 )
 
 const requestParamsAsterisk string = "*"
@@ -20,81 +20,106 @@ const requestParamsAsterisk string = "*"
 // HandlerFactory creates a handler function that adapts the gin router with the injected proxy
 type HandlerFactory func(*config.EndpointConfig, proxy.Proxy) gin.HandlerFunc
 
-// EndpointHandler implements the HandleFactory interface using the default ToHTTPError function
-func EndpointHandler(configuration *config.EndpointConfig, proxy proxy.Proxy) gin.HandlerFunc {
-	return CustomErrorEndpointHandler(configuration, proxy, router.DefaultToHTTPError)
+// ErrorResponseWriter writes the string representation of an error into the response body
+// and sets a Content-Type header for errors that implement the encodedResponseError interface.
+var ErrorResponseWriter = func(c *gin.Context, err error) {
+	if te, ok := err.(encodedResponseError); ok && te.Encoding() != "" {
+		c.Header("Content-Type", te.Encoding())
+	}
+	c.Writer.WriteString(err.Error())
 }
 
-// CustomErrorEndpointHandler implements the HandleFactory interface
-func CustomErrorEndpointHandler(configuration *config.EndpointConfig, prxy proxy.Proxy, errF router.ToHTTPError) gin.HandlerFunc {
-	cacheControlHeaderValue := fmt.Sprintf("public, max-age=%d", int(configuration.CacheTTL.Seconds()))
-	isCacheEnabled := configuration.CacheTTL.Seconds() != 0
-	requestGenerator := NewRequest(configuration.HeadersToPass)
-	render := getRender(configuration)
+// EndpointHandler implements the HandlerFactory interface using the default ToHTTPError function
+var EndpointHandler = CustomErrorEndpointHandler(logging.NoOp, server.DefaultToHTTPError)
 
-	return func(c *gin.Context) {
-		requestCtx, cancel := context.WithTimeout(c, configuration.Timeout)
+// CustomErrorEndpointHandler returns a HandlerFactory using the injected ToHTTPError function and logger
+func CustomErrorEndpointHandler(logger logging.Logger, errF server.ToHTTPError) HandlerFactory {
+	return func(configuration *config.EndpointConfig, prxy proxy.Proxy) gin.HandlerFunc {
+		cacheControlHeaderValue := fmt.Sprintf("public, max-age=%d", int(configuration.CacheTTL.Seconds()))
+		isCacheEnabled := configuration.CacheTTL.Seconds() != 0
+		requestGenerator := NewRequest(configuration.HeadersToPass)
+		render := getRender(configuration)
+		logPrefix := "[ENDPOINT: " + configuration.Endpoint + "]"
 
-		c.Header(core.KrakendHeaderName, core.KrakendHeaderValue)
+		return func(c *gin.Context) {
+			requestCtx, cancel := context.WithTimeout(c, configuration.Timeout)
 
-		response, err := prxy(requestCtx, requestGenerator(c, configuration.QueryString))
+			c.Header(core.KrakendHeaderName, core.KrakendHeaderValue)
 
-		select {
-		case <-requestCtx.Done():
-			if err == nil {
-				err = router.ErrInternalError
+			response, err := prxy(requestCtx, requestGenerator(c, configuration.QueryString))
+
+			select {
+			case <-requestCtx.Done():
+				if err == nil {
+					err = server.ErrInternalError
+				}
+			default:
 			}
-		default:
-		}
 
-		complete := router.HeaderIncompleteResponseValue
+			complete := server.HeaderIncompleteResponseValue
 
-		if response != nil && len(response.Data) > 0 {
-			if response.IsComplete {
-				complete = router.HeaderCompleteResponseValue
-				if isCacheEnabled {
-					c.Header("Cache-Control", cacheControlHeaderValue)
+			if response != nil && len(response.Data) > 0 {
+				if response.IsComplete {
+					complete = server.HeaderCompleteResponseValue
+					if isCacheEnabled {
+						c.Header("Cache-Control", cacheControlHeaderValue)
+					}
+				}
+
+				for k, vs := range response.Metadata.Headers {
+					for _, v := range vs {
+						c.Writer.Header().Add(k, v)
+					}
 				}
 			}
 
-			for k, vs := range response.Metadata.Headers {
-				for _, v := range vs {
-					c.Writer.Header().Add(k, v)
-				}
+			c.Header(server.CompleteResponseHeaderName, complete)
+
+			for _, err := range c.Errors {
+				logger.Error(logPrefix, err.Error())
 			}
-		}
 
-		c.Header(router.CompleteResponseHeaderName, complete)
-
-		if err != nil {
-			c.Error(err)
-
-			if response == nil {
-				if t, ok := err.(responseError); ok {
-					c.Status(t.StatusCode())
+			if err != nil {
+				if t, ok := err.(multiError); ok {
+					for i, errN := range t.Errors() {
+						c.Error(errN)
+						logger.Error(fmt.Sprintf("%s Error #%d: %s", logPrefix, i, errN.Error()))
+					}
 				} else {
-					c.Status(errF(err))
+					c.Error(err)
+					logger.Error(logPrefix, err.Error())
 				}
-				cancel()
-				return
-			}
-		}
 
-		render(c, response)
-		cancel()
+				if response == nil {
+					if t, ok := err.(responseError); ok {
+						c.Status(t.StatusCode())
+					} else {
+						c.Status(errF(err))
+					}
+					if returnErrorMsg {
+						ErrorResponseWriter(c, err)
+					}
+					cancel()
+					return
+				}
+			}
+
+			render(c, response)
+			cancel()
+		}
 	}
 }
 
 // NewRequest gets a request from the current gin context and the received query string
 func NewRequest(headersToSend []string) func(*gin.Context, []string) *proxy.Request {
 	if len(headersToSend) == 0 {
-		headersToSend = router.HeadersToSend
+		headersToSend = server.HeadersToSend
 	}
 
 	return func(c *gin.Context, queryString []string) *proxy.Request {
 		params := make(map[string]string, len(c.Params))
 		for _, param := range c.Params {
-			params[strings.Title(param.Key[:1])+param.Key[1:]] = param.Value
+			params[textproto.CanonicalMIMEHeaderKey(param.Key[:1])+param.Key[1:]] = param.Value
 		}
 
 		headers := make(map[string][]string, 3+len(headersToSend))
@@ -116,9 +141,9 @@ func NewRequest(headersToSend []string) func(*gin.Context, []string) *proxy.Requ
 		// if User-Agent is not forwarded using headersToSend, we set
 		// the KrakenD router User Agent value
 		if _, ok := headers["User-Agent"]; !ok {
-			headers["User-Agent"] = router.UserAgentHeaderValue
+			headers["User-Agent"] = server.UserAgentHeaderValue
 		} else {
-			headers["X-Forwarded-Via"] = router.UserAgentHeaderValue
+			headers["X-Forwarded-Via"] = server.UserAgentHeaderValue
 		}
 
 		query := make(map[string][]string, len(queryString))
@@ -136,6 +161,7 @@ func NewRequest(headersToSend []string) func(*gin.Context, []string) *proxy.Requ
 		}
 
 		return &proxy.Request{
+			Path:    c.Request.URL.Path,
 			Method:  c.Request.Method,
 			Query:   query,
 			Body:    c.Request.Body,
@@ -145,7 +171,17 @@ func NewRequest(headersToSend []string) func(*gin.Context, []string) *proxy.Requ
 	}
 }
 
+type encodedResponseError interface {
+	responseError
+	Encoding() string
+}
+
 type responseError interface {
 	error
 	StatusCode() int
+}
+
+type multiError interface {
+	error
+	Errors() []error
 }

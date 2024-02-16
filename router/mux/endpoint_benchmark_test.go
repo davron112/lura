@@ -1,18 +1,19 @@
 // SPDX-License-Identifier: Apache-2.0
+
 package mux
 
 import (
 	"bytes"
 	"context"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 	"time"
 
-	"github.com/davron112/lura/config"
-	"github.com/davron112/lura/proxy"
+	"github.com/davron112/lura/v2/config"
+	"github.com/davron112/lura/v2/proxy"
 )
 
 func BenchmarkEndpointHandler_ko(b *testing.B) {
@@ -28,7 +29,7 @@ func BenchmarkEndpointHandler_ko(b *testing.B) {
 	router := http.NewServeMux()
 	router.Handle("/_gin_endpoint/", EndpointHandler(endpoint, p))
 
-	req, _ := http.NewRequest("GET", "http://127.0.0.1:8080/_gin_endpoint/a?b=1", nil)
+	req, _ := http.NewRequest("GET", "http://127.0.0.1:8080/_gin_endpoint/a?b=1", http.NoBody)
 	req.Header.Set("Content-Type", "application/json")
 
 	b.ReportAllocs()
@@ -41,7 +42,7 @@ func BenchmarkEndpointHandler_ko(b *testing.B) {
 func BenchmarkEndpointHandler_ok(b *testing.B) {
 	pResp := proxy.Response{
 		Data:       map[string]interface{}{},
-		Io:         ioutil.NopCloser(&bytes.Buffer{}),
+		Io:         io.NopCloser(&bytes.Buffer{}),
 		IsComplete: true,
 		Metadata:   proxy.Metadata{},
 	}
@@ -57,7 +58,7 @@ func BenchmarkEndpointHandler_ok(b *testing.B) {
 	router := http.NewServeMux()
 	router.Handle("/_gin_endpoint/", EndpointHandler(endpoint, p))
 
-	req, _ := http.NewRequest("GET", "http://127.0.0.1:8080/_gin_endpoint/a?b=1", nil)
+	req, _ := http.NewRequest("GET", "http://127.0.0.1:8080/_gin_endpoint/a?b=1", http.NoBody)
 	req.Header.Set("Content-Type", "application/json")
 
 	b.ReportAllocs()
@@ -80,7 +81,7 @@ func BenchmarkEndpointHandler_ko_Parallel(b *testing.B) {
 	router := http.NewServeMux()
 	router.Handle("/_gin_endpoint/", EndpointHandler(endpoint, p))
 
-	req, _ := http.NewRequest("GET", "http://127.0.0.1:8080/_gin_endpoint/a?b=1", nil)
+	req, _ := http.NewRequest("GET", "http://127.0.0.1:8080/_gin_endpoint/a?b=1", http.NoBody)
 	req.Header.Set("Content-Type", "application/json")
 
 	b.ReportAllocs()
@@ -95,7 +96,7 @@ func BenchmarkEndpointHandler_ko_Parallel(b *testing.B) {
 func BenchmarkEndpointHandler_ok_Parallel(b *testing.B) {
 	pResp := proxy.Response{
 		Data:       map[string]interface{}{},
-		Io:         ioutil.NopCloser(&bytes.Buffer{}),
+		Io:         io.NopCloser(&bytes.Buffer{}),
 		IsComplete: true,
 		Metadata:   proxy.Metadata{},
 	}
@@ -111,7 +112,7 @@ func BenchmarkEndpointHandler_ok_Parallel(b *testing.B) {
 	router := http.NewServeMux()
 	router.Handle("/_gin_endpoint/", EndpointHandler(endpoint, p))
 
-	req, _ := http.NewRequest("GET", "http://127.0.0.1:8080/_gin_endpoint/a?b=1", nil)
+	req, _ := http.NewRequest("GET", "http://127.0.0.1:8080/_gin_endpoint/a?b=1", http.NoBody)
 	req.Header.Set("Content-Type", "application/json")
 
 	b.ReportAllocs()

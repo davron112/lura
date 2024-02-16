@@ -1,16 +1,16 @@
 // SPDX-License-Identifier: Apache-2.0
+
 package gin
 
 import (
 	"bytes"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
+	"github.com/davron112/lura/v2/logging"
 	"github.com/gin-gonic/gin"
-
-	"github.com/davron112/lura/logging"
 )
 
 func TestDebugHandler(t *testing.T) {
@@ -24,16 +24,16 @@ func TestDebugHandler(t *testing.T) {
 	router := gin.New()
 	router.GET("/_gin_endpoint/:param", DebugHandler(logger))
 
-	req, _ := http.NewRequest("GET", "http://127.0.0.1:8088/_gin_endpoint/a?b=1", ioutil.NopCloser(&bytes.Buffer{}))
+	req, _ := http.NewRequest("GET", "http://127.0.0.1:8088/_gin_endpoint/a?b=1", io.NopCloser(&bytes.Buffer{}))
 	req.Header.Set("Content-Type", "application/json")
 
 	w := httptest.NewRecorder()
 
 	router.ServeHTTP(w, req)
 
-	body, ioerr := ioutil.ReadAll(w.Result().Body)
+	body, ioerr := io.ReadAll(w.Result().Body)
 	if ioerr != nil {
-		t.Error("reading a response:", err.Error())
+		t.Error("reading a response:", ioerr.Error())
 		return
 	}
 	w.Result().Body.Close()
