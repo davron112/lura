@@ -1,5 +1,4 @@
 // SPDX-License-Identifier: Apache-2.0
-
 package plugin
 
 import (
@@ -9,9 +8,8 @@ import (
 	"plugin"
 	"strings"
 
-	"github.com/davron112/lura/v2/logging"
-	luraplugin "github.com/davron112/lura/v2/plugin"
-	"github.com/davron112/lura/v2/register"
+	luraplugin "github.com/davron112/lura/plugin"
+	"github.com/davron112/lura/register"
 )
 
 var serverRegister = register.New()
@@ -30,45 +28,37 @@ type Registerer interface {
 	))
 }
 
-type LoggerRegisterer interface {
-	RegisterLogger(interface{})
-}
-
 type RegisterHandlerFunc func(
 	name string,
 	handler func(context.Context, map[string]interface{}, http.Handler) (http.Handler, error),
 )
 
 func Load(path, pattern string, rcf RegisterHandlerFunc) (int, error) {
-	return LoadWithLogger(path, pattern, rcf, nil)
-}
-
-func LoadWithLogger(path, pattern string, rcf RegisterHandlerFunc, logger logging.Logger) (int, error) {
 	plugins, err := luraplugin.Scan(path, pattern)
 	if err != nil {
 		return 0, err
 	}
-	return load(plugins, rcf, logger)
+	return load(plugins, rcf)
 }
 
-func load(plugins []string, rcf RegisterHandlerFunc, logger logging.Logger) (int, error) {
+func load(plugins []string, rcf RegisterHandlerFunc) (int, error) {
 	errors := []error{}
 	loadedPlugins := 0
 	for k, pluginName := range plugins {
-		if err := open(pluginName, rcf, logger); err != nil {
-			errors = append(errors, fmt.Errorf("plugin #%d (%s): %s", k, pluginName, err.Error()))
+		if err := open(pluginName, rcf); err != nil {
+			errors = append(errors, fmt.Errorf("opening plugin %d (%s): %s", k, pluginName, err.Error()))
 			continue
 		}
 		loadedPlugins++
 	}
 
 	if len(errors) > 0 {
-		return loadedPlugins, loaderError{errors: errors}
+		return loadedPlugins, loaderError{errors}
 	}
 	return loadedPlugins, nil
 }
 
-func open(pluginName string, rcf RegisterHandlerFunc, logger logging.Logger) (err error) {
+func open(pluginName string, rcf RegisterHandlerFunc) (err error) {
 	defer func() {
 		if r := recover(); r != nil {
 			var ok bool
@@ -93,13 +83,6 @@ func open(pluginName string, rcf RegisterHandlerFunc, logger logging.Logger) (er
 	if !ok {
 		return fmt.Errorf("http-server-handler plugin loader: unknown type")
 	}
-
-	if logger != nil {
-		if lr, ok := r.(LoggerRegisterer); ok {
-			lr.RegisterLogger(logger)
-		}
-	}
-
 	registerer.RegisterHandlers(rcf)
 	return
 }
@@ -127,12 +110,4 @@ func (l loaderError) Error() string {
 		msgs[i] = err.Error()
 	}
 	return fmt.Sprintf("plugin loader found %d error(s): \n%s", len(msgs), strings.Join(msgs, "\n"))
-}
-
-func (l loaderError) Len() int {
-	return len(l.errors)
-}
-
-func (l loaderError) Errs() []error {
-	return l.errors
 }

@@ -1,8 +1,6 @@
+/* Package proxy provides proxy and proxy middleware interfaces and implementations.
+ */
 // SPDX-License-Identifier: Apache-2.0
-
-/*
-Package proxy provides proxy and proxy middleware interfaces and implementations.
-*/
 package proxy
 
 import (
@@ -10,11 +8,11 @@ import (
 	"errors"
 	"io"
 
-	"github.com/davron112/lura/v2/config"
+	"github.com/davron112/lura/config"
 )
 
 // Namespace to be used in extra config
-const Namespace = "github.com/devopsfaith/krakend/proxy"
+const Namespace = "github.com/davron112/krakend/proxy"
 
 // Metadata is the Metadata of the Response which contains Headers and StatusCode
 type Metadata struct {

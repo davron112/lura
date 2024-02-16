@@ -1,15 +1,14 @@
 // SPDX-License-Identifier: Apache-2.0
-
 package chi
 
 import (
 	"net/http"
 	"strings"
 
-	"github.com/davron112/lura/v2/config"
-	"github.com/davron112/lura/v2/proxy"
-	"github.com/davron112/lura/v2/router/mux"
-	"github.com/go-chi/chi/v5"
+	"github.com/davron112/lura/config"
+	"github.com/davron112/lura/proxy"
+	"github.com/davron112/lura/router/mux"
+	"github.com/go-chi/chi"
 )
 
 // HandlerFactory creates a handler function that adapts the chi router with the injected proxy
@@ -18,7 +17,9 @@ type HandlerFactory func(*config.EndpointConfig, proxy.Proxy) http.HandlerFunc
 // NewEndpointHandler implements the HandleFactory interface using the default ToHTTPError function
 func NewEndpointHandler(cfg *config.EndpointConfig, prxy proxy.Proxy) http.HandlerFunc {
 	hf := mux.CustomEndpointHandler(
-		mux.NewRequestBuilder(extractParamsFromEndpoint),
+		mux.NewRequestBuilder(func(r *http.Request) map[string]string {
+			return extractParamsFromEndpoint(r)
+		}),
 	)
 	return hf(cfg, prxy)
 }

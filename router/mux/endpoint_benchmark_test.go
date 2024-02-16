@@ -1,5 +1,4 @@
 // SPDX-License-Identifier: Apache-2.0
-
 package mux
 
 import (
@@ -12,8 +11,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/davron112/lura/v2/config"
-	"github.com/davron112/lura/v2/proxy"
+	"github.com/davron112/lura/config"
+	"github.com/davron112/lura/proxy"
 )
 
 func BenchmarkEndpointHandler_ko(b *testing.B) {

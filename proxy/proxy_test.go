@@ -1,5 +1,4 @@
 // SPDX-License-Identifier: Apache-2.0
-
 package proxy
 
 import (
@@ -46,7 +45,7 @@ func dummyProxy(r *Response) Proxy {
 	}
 }
 
-func delayedProxy(_ *testing.T, timeout time.Duration, r *Response) Proxy {
+func delayedProxy(t *testing.T, timeout time.Duration, r *Response) Proxy {
 	return func(ctx context.Context, _ *Request) (*Response, error) {
 		select {
 		case <-ctx.Done():
@@ -69,7 +68,7 @@ func (d dummyReadCloser) Read(p []byte) (int, error) {
 	return d.reader.Read(p)
 }
 
-func (dummyReadCloser) Close() error {
+func (d dummyReadCloser) Close() error {
 	return nil
 }
 

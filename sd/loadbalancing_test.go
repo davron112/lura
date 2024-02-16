@@ -1,5 +1,4 @@
 // SPDX-License-Identifier: Apache-2.0
-
 package sd
 
 import (
@@ -8,31 +7,8 @@ import (
 	"math"
 	"testing"
 
-	"github.com/davron112/lura/v2/config"
+	"github.com/davron112/lura/config"
 )
-
-func ExampleNewRoundRobinLB() {
-	balancer := NewRoundRobinLB(FixedSubscriber([]string{"a", "b", "c"}))
-
-	// code required in order to make the test deterministic
-	balancer.(*roundRobinLB).counter = 1
-
-	for i := 0; i < 5; i++ {
-		h, err := balancer.Host()
-		if err != nil {
-			fmt.Println(err.Error())
-			continue
-		}
-		fmt.Println(h)
-	}
-
-	// output
-	// b
-	// c
-	// a
-	// b
-	// a
-}
 
 func TestRoundRobinLB(t *testing.T) {
 	for _, endpoints := range balancerTestsCases {
@@ -50,10 +26,6 @@ func TestRoundRobinLB(t *testing.T) {
 
 			subscriber := FixedSubscriber(endpoints)
 			balancer := NewRoundRobinLB(subscriber)
-
-			if b, ok := balancer.(*roundRobinLB); ok {
-				b.counter = 0
-			}
 
 			for i := 0; i < iterations; i++ {
 				endpoint, err := balancer.Host()
@@ -83,38 +55,6 @@ func TestRoundRobinLB_noEndpoints(t *testing.T) {
 	if want, have := ErrNoHosts, err; want != have {
 		t.Errorf("want %v, have %v", want, have)
 	}
-}
-
-func ExampleNewRandomLB() {
-	balancer := NewRandomLB(FixedSubscriber([]string{"a", "b", "c"}))
-
-	// code required in order to make the test deterministic
-	{
-		var counter uint32
-		balancer.(*randomLB).rand = func(max uint32) uint32 {
-			if max != 3 {
-				fmt.Println("unexpected max:", max)
-			}
-			defer func() { counter++ }()
-			return counter % max
-		}
-	}
-
-	for i := 0; i < 5; i++ {
-		h, err := balancer.Host()
-		if err != nil {
-			fmt.Println(err.Error())
-			continue
-		}
-		fmt.Println(h)
-	}
-
-	// output
-	// a
-	// b
-	// c
-	// a
-	// b
 }
 
 func TestRandomLB(t *testing.T) {

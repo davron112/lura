@@ -1,8 +1,6 @@
+/* Package logging provides a simple logger interface
+ */
 // SPDX-License-Identifier: Apache-2.0
-
-/*
-	Package logging provides a simple logger interface and implementations
-*/
 package logging
 
 import (
@@ -40,7 +38,7 @@ const (
 var (
 	// ErrInvalidLogLevel is used when an invalid log level has been used.
 	ErrInvalidLogLevel = errors.New("invalid log level")
-	defaultLogger      = BasicLogger{Level: LEVEL_CRITICAL, Logger: log.New(os.Stderr, "", log.LstdFlags)}
+	defaultLogger      = logger{Level: LEVEL_CRITICAL, Logger: log.New(os.Stderr, "", log.LstdFlags)}
 	logLevels          = map[string]int{
 		"DEBUG":    LEVEL_DEBUG,
 		"INFO":     LEVEL_INFO,
@@ -53,67 +51,63 @@ var (
 )
 
 // NewLogger creates and returns a Logger object
-func NewLogger(level string, out io.Writer, prefix string) (BasicLogger, error) {
+func NewLogger(level string, out io.Writer, prefix string) (Logger, error) {
 	l, ok := logLevels[strings.ToUpper(level)]
 	if !ok {
 		return defaultLogger, ErrInvalidLogLevel
 	}
-	return BasicLogger{Level: l, Prefix: prefix, Logger: log.New(out, "", log.LstdFlags)}, nil
+	return logger{Level: l, Prefix: prefix, Logger: log.New(out, "", log.LstdFlags)}, nil
 }
 
-type BasicLogger struct {
+type logger struct {
 	Level  int
 	Prefix string
 	Logger *log.Logger
 }
 
 // Debug logs a message using DEBUG as log level.
-func (l BasicLogger) Debug(v ...interface{}) {
+func (l logger) Debug(v ...interface{}) {
 	if l.Level > LEVEL_DEBUG {
 		return
 	}
-	l.prependLog("DEBUG:", v...)
+	l.prependLog("DEBUG:", v)
 }
 
 // Info logs a message using INFO as log level.
-func (l BasicLogger) Info(v ...interface{}) {
+func (l logger) Info(v ...interface{}) {
 	if l.Level > LEVEL_INFO {
 		return
 	}
-	l.prependLog("INFO:", v...)
+	l.prependLog("INFO:", v)
 }
 
 // Warning logs a message using WARNING as log level.
-func (l BasicLogger) Warning(v ...interface{}) {
+func (l logger) Warning(v ...interface{}) {
 	if l.Level > LEVEL_WARNING {
 		return
 	}
-	l.prependLog("WARNING:", v...)
+	l.prependLog("WARNING:", v)
 }
 
 // Error logs a message using ERROR as log level.
-func (l BasicLogger) Error(v ...interface{}) {
+func (l logger) Error(v ...interface{}) {
 	if l.Level > LEVEL_ERROR {
 		return
 	}
-	l.prependLog("ERROR:", v...)
+	l.prependLog("ERROR:", v)
 }
 
 // Critical logs a message using CRITICAL as log level.
-func (l BasicLogger) Critical(v ...interface{}) {
-	l.prependLog("CRITICAL:", v...)
+func (l logger) Critical(v ...interface{}) {
+	l.prependLog("CRITICAL:", v)
 }
 
 // Fatal is equivalent to l.Critical(fmt.Sprint()) followed by a call to os.Exit(1).
-func (l BasicLogger) Fatal(v ...interface{}) {
-	l.prependLog("FATAL:", v...)
+func (l logger) Fatal(v ...interface{}) {
+	l.prependLog("FATAL:", v)
 	os.Exit(1)
 }
 
-func (l BasicLogger) prependLog(level string, v ...interface{}) {
-	msg := make([]interface{}, len(v)+2)
-	msg[0] = l.Prefix
-	msg[1] = level
-	copy(msg[2:], v)
-	l.Logger.Println(msg...)
+func (l logger) prependLog(level string, v []interface{}) {
+	l.Logger.Println(l.Prefix, level, v)
 }

@@ -2,10 +2,10 @@
 
 # The Lura Project framework
 
-[![Go Report Card](https://goreportcard.com/badge/github.com/davron112/lura)](https://goreportcard.com/report/github.com/davron112/lura)
+![Go Report Card](https://goreportcard.com/badge/github.com/davron112/lura)
 [![GoDoc](https://godoc.org/github.com/davron112/lura?status.svg)](https://godoc.org/github.com/davron112/lura)
 ![CII Best Practices](https://bestpractices.coreinfrastructure.org/projects/3151/badge)
-![Docker Pulls](https://img.shields.io/docker/pulls/devopsfaith/krakend.svg)
+![Docker Pulls](https://img.shields.io/docker/pulls/davron112/krakend.svg)
 [![Slack Widget](https://img.shields.io/badge/join-us%20on%20slack-gray.svg?longCache=true&logo=slack&colorB=red)](https://gophers.slack.com/messages/lura)
 
 
@@ -99,6 +99,18 @@ A ready to use example:
 
 Visit the [framework overview](/docs/OVERVIEW.md) for more details about the components of the Lura project.
 
+### Examples
+
+You can find some implementation examples on [this KrakenD repository](https://github.com/davron112/krakend-examples)
+
+1. [gin router](https://github.com/davron112/krakend-examples/tree/master/gin/)
+2. [mux router](https://github.com/davron112/krakend-examples/tree/master/mux/)
+3. [gorilla router](https://github.com/davron112/krakend-examples/tree/master/gorilla/)
+4. [negroni middlewares](https://github.com/davron112/krakend-examples/tree/master/negroni/)
+5. [dns srv service discovery](https://github.com/davron112/krakend-examples/tree/master/dns/)
+6. [jwt middlewares](https://github.com/davron112/krakend-examples/tree/master/jwt/)
+7. [httpcache based proxies](https://github.com/davron112/krakend-examples/tree/master/httpcache/)
+
 ## Configuration file
 
 [Lura config file](/docs/CONFIG.md)
@@ -111,7 +123,7 @@ Check out the [benchmark results](/docs/BENCHMARKS.md) of several Lura component
 We are always happy to receive contributions. If you have questions, suggestions, bugs please open an issue.
 If you want to submit the code, create the issue and send us a pull request for review.
 
-Read [CONTRIBUTING.md](/CONTRIBUTING.md) for more information.
+Read [CONTRIBUITING.md](/CONTRIBUTING.md) for more information.
 
 
 ## Want more?

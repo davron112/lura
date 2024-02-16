@@ -1,5 +1,4 @@
 // SPDX-License-Identifier: Apache-2.0
-
 package mux
 
 import (
@@ -10,10 +9,10 @@ import (
 	"net/textproto"
 	"strings"
 
-	"github.com/davron112/lura/v2/config"
-	"github.com/davron112/lura/v2/core"
-	"github.com/davron112/lura/v2/proxy"
-	"github.com/davron112/lura/v2/transport/http/server"
+	"github.com/davron112/lura/config"
+	"github.com/davron112/lura/core"
+	"github.com/davron112/lura/proxy"
+	"github.com/davron112/lura/router"
 )
 
 const requestParamsAsterisk string = "*"
@@ -27,11 +26,11 @@ var EndpointHandler = CustomEndpointHandler(NewRequest)
 
 // CustomEndpointHandler returns a HandlerFactory with the received RequestBuilder using the default ToHTTPError function
 func CustomEndpointHandler(rb RequestBuilder) HandlerFactory {
-	return CustomEndpointHandlerWithHTTPError(rb, server.DefaultToHTTPError)
+	return CustomEndpointHandlerWithHTTPError(rb, router.DefaultToHTTPError)
 }
 
 // CustomEndpointHandlerWithHTTPError returns a HandlerFactory with the received RequestBuilder
-func CustomEndpointHandlerWithHTTPError(rb RequestBuilder, errF server.ToHTTPError) HandlerFactory {
+func CustomEndpointHandlerWithHTTPError(rb RequestBuilder, errF router.ToHTTPError) HandlerFactory {
 	return func(configuration *config.EndpointConfig, prxy proxy.Proxy) http.HandlerFunc {
 		cacheControlHeaderValue := fmt.Sprintf("public, max-age=%d", int(configuration.CacheTTL.Seconds()))
 		isCacheEnabled := configuration.CacheTTL.Seconds() != 0
@@ -39,14 +38,14 @@ func CustomEndpointHandlerWithHTTPError(rb RequestBuilder, errF server.ToHTTPErr
 
 		headersToSend := configuration.HeadersToPass
 		if len(headersToSend) == 0 {
-			headersToSend = server.HeadersToSend
+			headersToSend = router.HeadersToSend
 		}
 		method := strings.ToTitle(configuration.Method)
 
 		return func(w http.ResponseWriter, r *http.Request) {
 			w.Header().Set(core.KrakendHeaderName, core.KrakendHeaderValue)
 			if r.Method != method {
-				w.Header().Set(server.CompleteResponseHeaderName, server.HeaderIncompleteResponseValue)
+				w.Header().Set(router.CompleteResponseHeaderName, router.HeaderIncompleteResponseValue)
 				http.Error(w, "", http.StatusMethodNotAllowed)
 				return
 			}
@@ -58,19 +57,19 @@ func CustomEndpointHandlerWithHTTPError(rb RequestBuilder, errF server.ToHTTPErr
 			select {
 			case <-requestCtx.Done():
 				if err == nil {
-					err = server.ErrInternalError
+					err = router.ErrInternalError
 				}
 			default:
 			}
 
 			if response != nil && len(response.Data) > 0 {
 				if response.IsComplete {
-					w.Header().Set(server.CompleteResponseHeaderName, server.HeaderCompleteResponseValue)
+					w.Header().Set(router.CompleteResponseHeaderName, router.HeaderCompleteResponseValue)
 					if isCacheEnabled {
 						w.Header().Set("Cache-Control", cacheControlHeaderValue)
 					}
 				} else {
-					w.Header().Set(server.CompleteResponseHeaderName, server.HeaderIncompleteResponseValue)
+					w.Header().Set(router.CompleteResponseHeaderName, router.HeaderIncompleteResponseValue)
 				}
 
 				for k, vs := range response.Metadata.Headers {
@@ -79,7 +78,7 @@ func CustomEndpointHandlerWithHTTPError(rb RequestBuilder, errF server.ToHTTPErr
 					}
 				}
 			} else {
-				w.Header().Set(server.CompleteResponseHeaderName, server.HeaderIncompleteResponseValue)
+				w.Header().Set(router.CompleteResponseHeaderName, router.HeaderIncompleteResponseValue)
 				if err != nil {
 					if t, ok := err.(responseError); ok {
 						http.Error(w, err.Error(), t.StatusCode())
@@ -134,9 +133,9 @@ func NewRequestBuilder(paramExtractor ParamExtractor) RequestBuilder {
 		// if User-Agent is not forwarded using headersToSend, we set
 		// the KrakenD router User Agent value
 		if _, ok := headers["User-Agent"]; !ok {
-			headers["User-Agent"] = server.UserAgentHeaderValue
+			headers["User-Agent"] = router.UserAgentHeaderValue
 		} else {
-			headers["X-Forwarded-Via"] = server.UserAgentHeaderValue
+			headers["X-Forwarded-Via"] = router.UserAgentHeaderValue
 		}
 
 		query := make(map[string][]string, len(queryString))
@@ -172,16 +171,16 @@ type responseError interface {
 // X-Real-IP and X-Forwarded-For in order to work properly with reverse-proxies such us: nginx or haproxy.
 // Use X-Forwarded-For before X-Real-Ip as nginx uses X-Real-Ip with the proxy's IP.
 func clientIP(r *http.Request) string {
-	clientIP := r.Header.Get("X-Forwarded-For")
+	clientIP := requestHeader(r, "X-Forwarded-For")
 	clientIP = strings.TrimSpace(strings.Split(clientIP, ",")[0])
 	if clientIP == "" {
-		clientIP = strings.TrimSpace(r.Header.Get("X-Real-Ip"))
+		clientIP = strings.TrimSpace(requestHeader(r, "X-Real-Ip"))
 	}
 	if clientIP != "" {
 		return clientIP
 	}
 
-	if addr := r.Header.Get("X-Appengine-Remote-Addr"); addr != "" {
+	if addr := requestHeader(r, "X-Appengine-Remote-Addr"); addr != "" {
 		return addr
 	}
 
@@ -189,5 +188,12 @@ func clientIP(r *http.Request) string {
 		return ip
 	}
 
+	return ""
+}
+
+func requestHeader(r *http.Request, key string) string {
+	if values, _ := r.Header[key]; len(values) > 0 {
+		return values[0]
+	}
 	return ""
 }

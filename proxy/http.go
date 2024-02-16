@@ -1,5 +1,4 @@
 // SPDX-License-Identifier: Apache-2.0
-
 package proxy
 
 import (
@@ -9,9 +8,9 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/davron112/lura/v2/config"
-	"github.com/davron112/lura/v2/encoding"
-	"github.com/davron112/lura/v2/transport/http/client"
+	"github.com/davron112/lura/config"
+	"github.com/davron112/lura/encoding"
+	"github.com/davron112/lura/transport/http/client"
 )
 
 var httpProxy = CustomHTTPProxyFactory(client.NewHTTPClient)
@@ -46,7 +45,7 @@ func NewHTTPProxyWithHTTPExecutor(remote *config.Backend, re client.HTTPRequestE
 
 // NewHTTPProxyDetailed creates a http proxy with the injected configuration, HTTPRequestExecutor,
 // Decoder and HTTPResponseParser
-func NewHTTPProxyDetailed(_ *config.Backend, re client.HTTPRequestExecutor, ch client.HTTPStatusHandler, rp HTTPResponseParser) Proxy {
+func NewHTTPProxyDetailed(remote *config.Backend, re client.HTTPRequestExecutor, ch client.HTTPStatusHandler, rp HTTPResponseParser) Proxy {
 	return func(ctx context.Context, request *Request) (*Response, error) {
 		requestToBakend, err := http.NewRequest(strings.ToTitle(request.Method), request.URL.String(), request.Body)
 		if err != nil {
@@ -70,7 +69,6 @@ func NewHTTPProxyDetailed(_ *config.Backend, re client.HTTPRequestExecutor, ch c
 		if requestToBakend.Body != nil {
 			requestToBakend.Body.Close()
 		}
-
 		select {
 		case <-ctx.Done():
 			return nil, ctx.Err()
@@ -99,9 +97,7 @@ func NewHTTPProxyDetailed(_ *config.Backend, re client.HTTPRequestExecutor, ch c
 
 // NewRequestBuilderMiddleware creates a proxy middleware that parses the request params received
 // from the outter layer and generates the path to the backend endpoints
-var NewRequestBuilderMiddleware = newRequestBuilderMiddleware
-
-func newRequestBuilderMiddleware(remote *config.Backend) Middleware {
+func NewRequestBuilderMiddleware(remote *config.Backend) Middleware {
 	return func(next ...Proxy) Proxy {
 		if len(next) > 1 {
 			panic(ErrTooManyProxies)

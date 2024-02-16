@@ -1,11 +1,10 @@
 // SPDX-License-Identifier: Apache-2.0
-
 package proxy
 
 import (
 	"context"
 
-	"github.com/davron112/lura/v2/config"
+	"github.com/davron112/lura/config"
 )
 
 const (

@@ -1,20 +1,17 @@
+/* Package httptreemux provides some basic implementations for building routers based on dimfeld/httptreemux
+ */
 // SPDX-License-Identifier: Apache-2.0
-
-/*
-	Package httptreemux provides some basic implementations for building routers based on dimfeld/httptreemux
-*/
 package httptreemux
 
 import (
 	"net/http"
 	"strings"
 
-	"github.com/davron112/lura/v2/logging"
-	"github.com/davron112/lura/v2/proxy"
-	"github.com/davron112/lura/v2/router"
-	"github.com/davron112/lura/v2/router/mux"
-	"github.com/davron112/lura/v2/transport/http/server"
-	"github.com/dimfeld/httptreemux/v5"
+	"github.com/davron112/lura/logging"
+	"github.com/davron112/lura/proxy"
+	"github.com/davron112/lura/router"
+	"github.com/davron112/lura/router/mux"
+	"github.com/dimfeld/httptreemux"
 )
 
 // DefaultFactory returns a net/http mux router factory with the injected proxy factory and logger
@@ -31,7 +28,7 @@ func DefaultConfig(pf proxy.Factory, logger logging.Logger) mux.Config {
 		ProxyFactory:   pf,
 		Logger:         logger,
 		DebugPattern:   "/__debug/{params}",
-		RunServer:      server.RunServer,
+		RunServer:      router.RunServer,
 	}
 }
 

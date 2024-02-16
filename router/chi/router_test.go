@@ -2,7 +2,6 @@
 // +build !race
 
 // SPDX-License-Identifier: Apache-2.0
-
 package chi
 
 import (
@@ -17,11 +16,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/davron112/lura/v2/config"
-	"github.com/davron112/lura/v2/logging"
-	"github.com/davron112/lura/v2/proxy"
-	"github.com/davron112/lura/v2/transport/http/server"
-	"github.com/go-chi/chi/v5"
+	"github.com/davron112/lura/config"
+	"github.com/davron112/lura/logging"
+	"github.com/davron112/lura/proxy"
+	"github.com/davron112/lura/router"
+	"github.com/go-chi/chi"
 )
 
 func TestDefaultFactory_ok(t *testing.T) {
@@ -118,8 +117,8 @@ func TestDefaultFactory_ok(t *testing.T) {
 		if resp.Header.Get("Cache-Control") != "" {
 			t.Error(endpoint.Endpoint, "Cache-Control error:", resp.Header.Get("Cache-Control"))
 		}
-		if resp.Header.Get(server.CompleteResponseHeaderName) != server.HeaderCompleteResponseValue {
-			t.Error(server.CompleteResponseHeaderName, "error:", resp.Header.Get(server.CompleteResponseHeaderName))
+		if resp.Header.Get(router.CompleteResponseHeaderName) != router.HeaderCompleteResponseValue {
+			t.Error(router.CompleteResponseHeaderName, "error:", resp.Header.Get(router.CompleteResponseHeaderName))
 		}
 		if resp.Header.Get("Content-Type") != "application/json" {
 			t.Error(endpoint.Endpoint, "Content-Type error:", resp.Header.Get("Content-Type"))
@@ -156,7 +155,7 @@ func TestDefaultFactory_ko(t *testing.T) {
 		HandlerFactory: NewEndpointHandler,
 		ProxyFactory:   noopProxyFactory(map[string]interface{}{"supu": "tupu"}),
 		Logger:         logger,
-		RunServer:      server.RunServer,
+		RunServer:      router.RunServer,
 	}).NewWithContext(ctx)
 
 	serviceCfg := config.ServiceConfig{
@@ -272,7 +271,7 @@ func TestRunServer_ko(t *testing.T) {
 	serviceCfg := config.ServiceConfig{}
 	r.Run(serviceCfg)
 	re := regexp.MustCompile(errorMsg)
-	if !re.MatchString(buff.String()) {
+	if !re.MatchString(string(buff.Bytes())) {
 		t.Errorf("the logger doesn't contain the expected msg: %s", buff.Bytes())
 	}
 }
@@ -295,8 +294,8 @@ func checkResponseIs404(t *testing.T, req *http.Request) {
 	if resp.Header.Get("Cache-Control") != "" {
 		t.Error("Cache-Control error:", resp.Header.Get("Cache-Control"))
 	}
-	if resp.Header.Get(server.CompleteResponseHeaderName) != server.HeaderIncompleteResponseValue {
-		t.Error(req.URL.String(), server.CompleteResponseHeaderName, "error:", resp.Header.Get(server.CompleteResponseHeaderName))
+	if resp.Header.Get(router.CompleteResponseHeaderName) != router.HeaderIncompleteResponseValue {
+		t.Error(req.URL.String(), router.CompleteResponseHeaderName, "error:", resp.Header.Get(router.CompleteResponseHeaderName))
 	}
 	if resp.Header.Get("Content-Type") != "text/plain; charset=utf-8" {
 		t.Error("Content-Type error:", resp.Header.Get("Content-Type"))

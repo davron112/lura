@@ -1,5 +1,4 @@
 // SPDX-License-Identifier: Apache-2.0
-
 package mux
 
 import (
@@ -14,9 +13,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/davron112/lura/v2/config"
-	"github.com/davron112/lura/v2/proxy"
-	"github.com/davron112/lura/v2/transport/http/server"
+	"github.com/davron112/lura/config"
+	"github.com/davron112/lura/proxy"
+	"github.com/davron112/lura/router"
 )
 
 func TestEndpointHandler_ok(t *testing.T) {
@@ -157,7 +156,7 @@ func TestEndpointHandler_cancelEmpty(t *testing.T) {
 		timeout:            0,
 		proxy:              p,
 		method:             "GET",
-		expectedBody:       server.ErrInternalError.Error() + "\n",
+		expectedBody:       router.ErrInternalError.Error() + "\n",
 		expectedCache:      "",
 		expectedContent:    "text/plain; charset=utf-8",
 		expectedStatusCode: http.StatusInternalServerError,
@@ -252,13 +251,13 @@ func (tc endpointHandlerTestCase) test(t *testing.T) {
 		endpoint.HeadersToPass = tc.headers
 	}
 
-	s := startMuxServer(EndpointHandler(endpoint, tc.proxy))
+	server := startMuxServer(EndpointHandler(endpoint, tc.proxy))
 
 	req, _ := http.NewRequest(tc.method, "http://127.0.0.1:8081/_mux_endpoint?b=1&c[]=x&c[]=y&d=1&d=2&a=42", ioutil.NopCloser(&bytes.Buffer{}))
 	req.Header.Set("Content-Type", "application/json")
 
 	w := httptest.NewRecorder()
-	s.ServeHTTP(w, req)
+	server.ServeHTTP(w, req)
 
 	body, ioerr := ioutil.ReadAll(w.Result().Body)
 	if ioerr != nil {
@@ -271,11 +270,11 @@ func (tc endpointHandlerTestCase) test(t *testing.T) {
 	if resp.Header.Get("Cache-Control") != tc.expectedCache {
 		t.Error("Cache-Control error:", resp.Header.Get("Cache-Control"))
 	}
-	if tc.completed && resp.Header.Get(server.CompleteResponseHeaderName) != server.HeaderCompleteResponseValue {
-		t.Error(server.CompleteResponseHeaderName, "error:", resp.Header.Get(server.CompleteResponseHeaderName))
+	if tc.completed && resp.Header.Get(router.CompleteResponseHeaderName) != router.HeaderCompleteResponseValue {
+		t.Error(router.CompleteResponseHeaderName, "error:", resp.Header.Get(router.CompleteResponseHeaderName))
 	}
-	if !tc.completed && resp.Header.Get(server.CompleteResponseHeaderName) != server.HeaderIncompleteResponseValue {
-		t.Error(server.CompleteResponseHeaderName, "error:", resp.Header.Get(server.CompleteResponseHeaderName))
+	if !tc.completed && resp.Header.Get(router.CompleteResponseHeaderName) != router.HeaderIncompleteResponseValue {
+		t.Error(router.CompleteResponseHeaderName, "error:", resp.Header.Get(router.CompleteResponseHeaderName))
 	}
 	if resp.Header.Get("Content-Type") != tc.expectedContent {
 		t.Error("Content-Type error:", resp.Header.Get("Content-Type"))

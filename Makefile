@@ -1,22 +1,14 @@
-.PHONY: all test build benchmark
+.PHONY: all test build benchmark coveralls
 
 OS := $(shell uname | tr '[:upper:]' '[:lower:]')
 GIT_COMMIT := $(shell git rev-parse --short=7 HEAD)
 
 all: test build
 
-generate:
+test:
 	go generate ./...
-	go build -buildmode=plugin -o ./transport/http/client/plugin/tests/lura-client-example.so ./transport/http/client/plugin/tests
-	go build -buildmode=plugin -o ./transport/http/server/plugin/tests/lura-server-example.so ./transport/http/server/plugin/tests
-	go build -buildmode=plugin -o ./proxy/plugin/tests/lura-request-modifier-example.so ./proxy/plugin/tests/logger
-	go build -buildmode=plugin -o ./proxy/plugin/tests/lura-error-example.so ./proxy/plugin/tests/error
-
-test: generate
 	go test -cover -race ./...
-	#go test -tags integration --coverpkg=./... ./test/...
-	go test -tags integration ./transport/...
-	go test -tags integration ./proxy/...
+	go test -tags integration ./test
 
 benchmark:
 	@mkdir -p bench_res
@@ -25,3 +17,8 @@ benchmark:
 
 build:
 	go build ./...
+
+coveralls: all
+	go get github.com/mattn/goveralls
+	go install github.com/mattn/goveralls
+	sh coverage.sh --coveralls

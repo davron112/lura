@@ -2,15 +2,17 @@
 
 The configuration file needs to be a `json` file. The viper parser supports other formats but they haven't been as tested as the recommended one.
 
+The easiest way to create or edit a configuration file is using the [KrakenDesigner](http://www.krakend.io/designer/)
+
 ## Json example
 
 
     {
-	"version": 3,
+	"version": 1,
 	"name": "My lovely gateway",
 	"port": 8080,
-	"timeout": "10s",
-	"cache_ttl": "3600s",
+	"timeout": 10,
+	"cache_ttl": 3600,
 	"host": [
 		"http://127.0.0.1:8080",
 		"http://127.0.0.2:8000",
@@ -26,7 +28,7 @@ The configuration file needs to be a `json` file. The viper parser supports othe
 						"http://127.0.0.4"
 					],
 					"url_pattern": "/registered/{user}",
-					"allow": [
+					"whitelist": [
 						"some",
 						"what"
 					],
@@ -39,16 +41,16 @@ The configuration file needs to be a `json` file. The viper parser supports othe
 						"http://127.0.0.1:8080"
 					],
 					"url_pattern": "/users/{user}/permissions",
-					"deny": [
+					"blacklist": [
 						"spam2",
 						"notwanted2"
 					]
 				}
 			],
 			"concurrent_calls": 2,
-			"timeout": "1000s",
+			"timeout": 1000,
 			"cache_ttl": 3600,
-			"input_query_strings": [
+			"querystring_params": [
 				"page",
 				"limit"
 			]
@@ -63,7 +65,7 @@ The configuration file needs to be a `json` file. The viper parser supports othe
 				"url_pattern": "/__debug/tupu"
 			}],
 			"concurrent_calls": 1,
-			"timeout": "1000s",
+			"timeout": 10000,
 			"cache_ttl": 3600
 		},
 		{
@@ -74,13 +76,13 @@ The configuration file needs to be a `json` file. The viper parser supports othe
 					"https://api.github.com"
 				],
 				"url_pattern": "/",
-				"allow": [
+				"whitelist": [
 					"authorizations_url",
 					"code_search_url"
 				]
 			}],
 			"concurrent_calls": 2,
-			"timeout": "1000s",
+			"timeout": 1000,
 			"cache_ttl": 3600
 		},
 		{
@@ -92,7 +94,7 @@ The configuration file needs to be a `json` file. The viper parser supports othe
 						"https://jsonplaceholder.typicode.com"
 					],
 					"url_pattern": "/posts/{id}?supu={supu}",
-					"deny": [
+					"blacklist": [
 						"userId"
 					]
 				},
@@ -107,8 +109,8 @@ The configuration file needs to be a `json` file. The viper parser supports othe
 				}
 			],
 			"concurrent_calls": 3,
-			"timeout": "1000s",
-			"input_query_strings": [
+			"timeout": 4000,
+			"querystring_params": [
 				"page",
 				"limit"
 			]

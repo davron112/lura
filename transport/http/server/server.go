@@ -1,9 +1,7 @@
-// SPDX-License-Identifier: Apache-2.0
-
-/*
-		Package server provides tools to create http servers and handlers wrapping the
-	   lura router
+/* Package server provides tools to create http servers and handlers wrapping the
+   lura router
 */
+// SPDX-License-Identifier: Apache-2.0
 package server
 
 import (
@@ -18,8 +16,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/davron112/lura/v2/config"
-	"github.com/davron112/lura/v2/core"
+	"github.com/davron112/lura/config"
+	"github.com/davron112/lura/core"
 )
 
 // ToHTTPError translates an error into a HTTP status code
@@ -42,7 +40,7 @@ const (
 
 var (
 	// CompleteResponseHeaderName is the header to flag incomplete responses to the client
-	CompleteResponseHeaderName = "X-Krakend-Completed"
+	CompleteResponseHeaderName = "X-KrakenD-Completed"
 	// HeadersToSend are the headers to pass from the router request to the proxy
 	HeadersToSend = []string{"Content-Type"}
 	// UserAgentHeaderValue is the value of the User-Agent header to add to the proxy request
@@ -163,7 +161,7 @@ func parseTLSVersion(key string) uint16 {
 	if v, ok := versions[key]; ok {
 		return v
 	}
-	return tls.VersionTLS13
+	return tls.VersionTLS12
 }
 
 func parseCurveIDs(cfg *config.TLS) []tls.CurveID {
@@ -212,6 +210,5 @@ var (
 		"TLS10":  tls.VersionTLS10,
 		"TLS11":  tls.VersionTLS11,
 		"TLS12":  tls.VersionTLS12,
-		"TLS13":  tls.VersionTLS13,
 	}
 )

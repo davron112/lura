@@ -1,5 +1,4 @@
 // SPDX-License-Identifier: Apache-2.0
-
 package proxy
 
 import (
@@ -32,7 +31,7 @@ func (r *Request) GeneratePath(URLPattern string) {
 		key = append(key, "{{."...)
 		key = append(key, k...)
 		key = append(key, "}}"...)
-		buff = bytes.ReplaceAll(buff, key, []byte(v))
+		buff = bytes.Replace(buff, key, []byte(v), -1)
 	}
 	r.Path = string(buff)
 }

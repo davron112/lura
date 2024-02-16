@@ -1,5 +1,4 @@
 // SPDX-License-Identifier: Apache-2.0
-
 package mux
 
 import (
@@ -12,9 +11,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/davron112/lura/v2/config"
-	"github.com/davron112/lura/v2/encoding"
-	"github.com/davron112/lura/v2/proxy"
+	"github.com/davron112/lura/config"
+	"github.com/davron112/lura/encoding"
+	"github.com/davron112/lura/proxy"
 )
 
 func TestRender_unknown(t *testing.T) {

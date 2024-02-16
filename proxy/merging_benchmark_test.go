@@ -1,5 +1,4 @@
 // SPDX-License-Identifier: Apache-2.0
-
 package proxy
 
 import (
@@ -8,8 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/davron112/lura/v2/config"
-	"github.com/davron112/lura/v2/logging"
+	"github.com/davron112/lura/config"
 )
 
 func BenchmarkNewMergeDataMiddleware(b *testing.B) {
@@ -38,7 +36,7 @@ func BenchmarkNewMergeDataMiddleware(b *testing.B) {
 				Backend: backends[:totalParts],
 				Timeout: time.Duration(100) * time.Millisecond,
 			}
-			proxy := NewMergeDataMiddleware(logging.NoOp, &endpoint)(proxies[:totalParts]...)
+			proxy := NewMergeDataMiddleware(&endpoint)(proxies[:totalParts]...)
 			b.ResetTimer()
 			b.ReportAllocs()
 			for i := 0; i < b.N; i++ {
@@ -90,7 +88,7 @@ func BenchmarkNewMergeDataMiddleware_sequential(b *testing.B) {
 					},
 				},
 			}
-			proxy := NewMergeDataMiddleware(logging.NoOp, &endpoint)(proxies[:totalParts]...)
+			proxy := NewMergeDataMiddleware(&endpoint)(proxies[:totalParts]...)
 			b.ResetTimer()
 			b.ReportAllocs()
 			for i := 0; i < b.N; i++ {

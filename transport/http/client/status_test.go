@@ -1,5 +1,4 @@
 // SPDX-License-Identifier: Apache-2.0
-
 package client
 
 import (
@@ -9,7 +8,7 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/davron112/lura/v2/config"
+	"github.com/davron112/lura/config"
 )
 
 func TestDetailedHTTPStatusHandler(t *testing.T) {
@@ -57,7 +56,7 @@ func TestDetailedHTTPStatusHandler(t *testing.T) {
 			return
 		}
 
-		e, ok := err.(NamedHTTPResponseError)
+		e, ok := err.(HTTPResponseError)
 		if !ok {
 			t.Errorf("#%d unexpected error type %T: %s", i, err, err.Error())
 			return

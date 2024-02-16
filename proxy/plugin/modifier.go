@@ -1,8 +1,6 @@
+/* Package plugin provides tools for loading and registering proxy plugins
+ */
 // SPDX-License-Identifier: Apache-2.0
-
-/*
-Package plugin provides tools for loading and registering proxy plugins
-*/
 package plugin
 
 import (
@@ -10,18 +8,17 @@ import (
 	"plugin"
 	"strings"
 
-	"github.com/davron112/lura/v2/logging"
-	luraplugin "github.com/davron112/lura/v2/plugin"
-	"github.com/davron112/lura/v2/register"
+	luraplugin "github.com/davron112/lura/plugin"
+	"github.com/davron112/lura/register"
 )
 
 const (
 	// Namespace is the namespace for the extra_config section
-	Namespace = "github.com/devopsfaith/krakend/proxy/plugin"
+	Namespace = "github.com/davron112/krakend/proxy/plugin"
 	// requestNamespace is the internal namespace for the register to be used with request modifiers
-	requestNamespace = "github.com/devopsfaith/krakend/proxy/plugin/request"
+	requestNamespace = "github.com/davron112/krakend/proxy/plugin/request"
 	// responseNamespace is the internal namespace for the register to be used with response modifiers
-	responseNamespace = "github.com/devopsfaith/krakend/proxy/plugin/response"
+	responseNamespace = "github.com/davron112/krakend/proxy/plugin/response"
 )
 
 var modifierRegister = register.New()
@@ -63,9 +60,11 @@ func RegisterModifier(
 	appliesToResponse bool,
 ) {
 	if appliesToRequest {
+		fmt.Println("registering request modifier:", name)
 		modifierRegister.Register(requestNamespace, name, modifierFactory)
 	}
 	if appliesToResponse {
+		fmt.Println("registering response modifier:", name)
 		modifierRegister.Register(responseNamespace, name, modifierFactory)
 	}
 }
@@ -80,10 +79,6 @@ type Registerer interface {
 	))
 }
 
-type LoggerRegisterer interface {
-	RegisterLogger(interface{})
-}
-
 // RegisterModifierFunc type is the function passed to the loaded Registerers
 type RegisterModifierFunc func(
 	name string,
@@ -92,38 +87,33 @@ type RegisterModifierFunc func(
 	appliesToResponse bool,
 )
 
-// Load scans the given path using the pattern and registers all the found modifier plugins into the rmf
-func Load(path, pattern string, rmf RegisterModifierFunc) (int, error) {
-	return LoadWithLogger(path, pattern, rmf, nil)
-}
-
-// LoadWithLogger scans the given path using the pattern and registers all the found modifier plugins into the rmf
-func LoadWithLogger(path, pattern string, rmf RegisterModifierFunc, logger logging.Logger) (int, error) {
+// LoadModifiers scans the given path using the pattern and registers all the found modifier plugins into the rmf
+func LoadModifiers(path, pattern string, rmf RegisterModifierFunc) (int, error) {
 	plugins, err := luraplugin.Scan(path, pattern)
 	if err != nil {
 		return 0, err
 	}
-	return load(plugins, rmf, logger)
+	return load(plugins, rmf)
 }
 
-func load(plugins []string, rmf RegisterModifierFunc, logger logging.Logger) (int, error) {
+func load(plugins []string, rmf RegisterModifierFunc) (int, error) {
 	errors := []error{}
 	loadedPlugins := 0
 	for k, pluginName := range plugins {
-		if err := open(pluginName, rmf, logger); err != nil {
-			errors = append(errors, fmt.Errorf("plugin #%d (%s): %s", k, pluginName, err.Error()))
+		if err := open(pluginName, rmf); err != nil {
+			errors = append(errors, fmt.Errorf("opening plugin %d (%s): %s", k, pluginName, err.Error()))
 			continue
 		}
 		loadedPlugins++
 	}
 
 	if len(errors) > 0 {
-		return loadedPlugins, loaderError{errors: errors}
+		return loadedPlugins, loaderError{errors}
 	}
 	return loadedPlugins, nil
 }
 
-func open(pluginName string, rmf RegisterModifierFunc, logger logging.Logger) (err error) {
+func open(pluginName string, rmf RegisterModifierFunc) (err error) {
 	defer func() {
 		if r := recover(); r != nil {
 			var ok bool
@@ -148,13 +138,6 @@ func open(pluginName string, rmf RegisterModifierFunc, logger logging.Logger) (e
 	if !ok {
 		return fmt.Errorf("modifier plugin loader: unknown type")
 	}
-
-	if logger != nil {
-		if lr, ok := r.(LoggerRegisterer); ok {
-			lr.RegisterLogger(logger)
-		}
-	}
-
 	registerer.RegisterModifiers(rmf)
 	return
 }
@@ -182,12 +165,4 @@ func (l loaderError) Error() string {
 		msgs[i] = err.Error()
 	}
 	return fmt.Sprintf("plugin loader found %d error(s): \n%s", len(msgs), strings.Join(msgs, "\n"))
-}
-
-func (l loaderError) Len() int {
-	return len(l.errors)
-}
-
-func (l loaderError) Errs() []error {
-	return l.errors
 }

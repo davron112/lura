@@ -1,5 +1,4 @@
 // SPDX-License-Identifier: Apache-2.0
-
 package gin
 
 import (
@@ -7,9 +6,9 @@ import (
 	"net/http"
 	"sync"
 
-	"github.com/davron112/lura/v2/config"
-	"github.com/davron112/lura/v2/encoding"
-	"github.com/davron112/lura/v2/proxy"
+	"github.com/davron112/lura/config"
+	"github.com/davron112/lura/encoding"
+	"github.com/davron112/lura/proxy"
 	"github.com/gin-gonic/gin"
 )
 
@@ -143,12 +142,12 @@ func noopRender(c *gin.Context, response *proxy.Response) {
 		c.Status(http.StatusInternalServerError)
 		return
 	}
+	c.Status(response.Metadata.StatusCode)
 	for k, vs := range response.Metadata.Headers {
 		for _, v := range vs {
 			c.Writer.Header().Add(k, v)
 		}
 	}
-	c.Status(response.Metadata.StatusCode)
 	if response.Io == nil {
 		return
 	}

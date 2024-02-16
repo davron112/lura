@@ -1,8 +1,6 @@
+/* Package chi provides some basic implementations for building routers based on go-chi/chi
+ */
 // SPDX-License-Identifier: Apache-2.0
-
-/*
-Package chi provides some basic implementations for building routers based on go-chi/chi
-*/
 package chi
 
 import (
@@ -10,20 +8,17 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/davron112/lura/v2/config"
-	"github.com/davron112/lura/v2/logging"
-	"github.com/davron112/lura/v2/proxy"
-	"github.com/davron112/lura/v2/router"
-	"github.com/davron112/lura/v2/router/mux"
-	"github.com/davron112/lura/v2/transport/http/server"
-	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/chi/v5/middleware"
+	"github.com/davron112/lura/config"
+	"github.com/davron112/lura/logging"
+	"github.com/davron112/lura/proxy"
+	"github.com/davron112/lura/router"
+	"github.com/davron112/lura/router/mux"
+	"github.com/go-chi/chi"
+	"github.com/go-chi/chi/middleware"
 )
 
 // ChiDefaultDebugPattern is the default pattern used to define the debug endpoint
 const ChiDefaultDebugPattern = "/__debug/"
-
-const logPrefix = "[SERVICE: Chi]"
 
 // RunServerFunc is a func that will run the http Server with the given params.
 type RunServerFunc func(context.Context, config.ServiceConfig, http.Handler) error
@@ -50,7 +45,7 @@ func DefaultFactory(proxyFactory proxy.Factory, logger logging.Logger) router.Fa
 			ProxyFactory:   proxyFactory,
 			Logger:         logger,
 			DebugPattern:   ChiDefaultDebugPattern,
-			RunServer:      server.RunServer,
+			RunServer:      router.RunServer,
 		},
 	)
 }
@@ -86,26 +81,27 @@ type chiRouter struct {
 // Run implements the router interface
 func (r chiRouter) Run(cfg config.ServiceConfig) {
 	r.cfg.Engine.Use(r.cfg.Middlewares...)
+
 	if cfg.Debug {
 		r.registerDebugEndpoints()
 	}
 
 	r.cfg.Engine.Get("/__health", mux.HealthHandler)
 
-	server.InitHTTPDefaultTransport(cfg)
+	router.InitHTTPDefaultTransport(cfg)
 
 	r.registerKrakendEndpoints(cfg.Endpoints)
 
 	r.cfg.Engine.NotFound(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set(server.CompleteResponseHeaderName, server.HeaderIncompleteResponseValue)
+		w.Header().Set(router.CompleteResponseHeaderName, router.HeaderIncompleteResponseValue)
 		http.NotFound(w, r)
 	})
 
 	if err := r.RunServer(r.ctx, cfg, r.cfg.Engine); err != nil {
-		r.cfg.Logger.Error(logPrefix, err.Error())
+		r.cfg.Logger.Error(err.Error())
 	}
 
-	r.cfg.Logger.Info(logPrefix, "Router execution ended")
+	r.cfg.Logger.Info("Router execution ended")
 }
 
 func (r chiRouter) registerDebugEndpoints() {
@@ -121,7 +117,7 @@ func (r chiRouter) registerKrakendEndpoints(endpoints []*config.EndpointConfig) 
 	for _, c := range endpoints {
 		proxyStack, err := r.cfg.ProxyFactory.New(c)
 		if err != nil {
-			r.cfg.Logger.Error(logPrefix, "calling the ProxyFactory", err.Error())
+			r.cfg.Logger.Error("calling the ProxyFactory", err.Error())
 			continue
 		}
 
@@ -132,10 +128,9 @@ func (r chiRouter) registerKrakendEndpoints(endpoints []*config.EndpointConfig) 
 func (r chiRouter) registerKrakendEndpoint(method string, endpoint *config.EndpointConfig, handler http.HandlerFunc, totBackends int) {
 	method = strings.ToTitle(method)
 	path := endpoint.Endpoint
-
 	if method != http.MethodGet && totBackends > 1 {
 		if !router.IsValidSequentialEndpoint(endpoint) {
-			r.cfg.Logger.Error(logPrefix, method, "endpoints with sequential proxy enabled only allow a non-GET in the last backend! Ignoring", path)
+			r.cfg.Logger.Error(method, " endpoints with sequential enabled is only the last one is allowed to be non GET! Ignoring", path)
 			return
 		}
 	}
@@ -152,8 +147,8 @@ func (r chiRouter) registerKrakendEndpoint(method string, endpoint *config.Endpo
 	case http.MethodDelete:
 		r.cfg.Engine.Delete(path, handler)
 	default:
-		r.cfg.Logger.Error(logPrefix, "Unsupported method", method)
+		r.cfg.Logger.Error("Unsupported method", method)
 		return
 	}
-	r.cfg.Logger.Debug(logPrefix, "registering the endpoint", method, path)
+	r.cfg.Logger.Debug("registering the endpoint", method, path)
 }

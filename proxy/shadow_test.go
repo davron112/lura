@@ -1,5 +1,4 @@
 // SPDX-License-Identifier: Apache-2.0
-
 package proxy
 
 import (
@@ -10,8 +9,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/davron112/lura/v2/config"
-	"github.com/davron112/lura/v2/logging"
+	"github.com/davron112/lura/config"
+	"github.com/davron112/lura/logging"
 )
 
 var (

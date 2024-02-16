@@ -1,15 +1,10 @@
 {
-    "version": 3,
+    "version": 2,
     "name": "My lovely gateway",
     "port": {{.port}},
     "host": [ "http://local.machine" ],
     "cache_ttl": "3600s",
     "timeout": "3s",
-    "extra_config":{
-        "github_com/davron112/lura/router/gin":{
-            "return_error_msg":true
-        }
-    },
     "endpoints": [
         {
             "endpoint": "/static",
@@ -22,7 +17,7 @@
                 }
             ],
             "extra_config": {
-                "github.com/devopsfaith/krakend/proxy": {
+                "github.com/davron112/krakend/proxy": {
                     "static": {
                         "strategy": "errored",
                         "data": {
@@ -36,7 +31,7 @@
         {
             "endpoint": "/param_forwarding/{first}/constant/{second}",
             "method": "POST",
-            "input_headers": [
+            "headers_to_pass": [
                 "Content-Type",
                 "Authorization",
                 "X-Y-Z"
@@ -109,7 +104,7 @@
                 }
             ],
             "extra_config": {
-                "github.com/devopsfaith/krakend/proxy": {
+                "github.com/davron112/krakend/proxy": {
                     "static": {
                         "strategy": "incomplete",
                         "data": {
@@ -129,7 +124,7 @@
                     ],
                     "url_pattern": "/",
                     "extra_config": {
-                        "github.com/devopsfaith/krakend/http": {
+                        "github.com/davron112/krakend/http": {
                             "return_error_details": "backend_a"
                         }
                     }
@@ -140,7 +135,7 @@
                     ],
                     "url_pattern": "/",
                     "extra_config": {
-                        "github.com/devopsfaith/krakend/http": {
+                        "github.com/davron112/krakend/http": {
                             "return_error_details": "backend_b"
                         }
                     }
@@ -175,7 +170,7 @@
         },
         {
             "endpoint": "/querystring-params-test/query-params",
-            "input_query_strings": [ "a", "b" ],
+            "querystring_params": [ "a", "b" ],
             "backend": [
                 {
                     "host": [ "{{.b6}}" ],
@@ -194,7 +189,7 @@
         },
         {
             "endpoint": "/querystring-params-test/all-params",
-            "input_query_strings": [ "*" ],
+            "querystring_params": [ "*" ],
             "backend": [
                 {
                     "host": [ "{{.b6}}" ],
@@ -213,7 +208,7 @@
         },
         {
             "endpoint": "/header-params-test/filter-params",
-            "input_headers": [ "X-Test-1" ],
+            "headers_to_pass": [ "X-Test-1" ],
             "backend": [
                 {
                     "host": [ "{{.b6}}" ],
@@ -223,7 +218,7 @@
         },
         {
             "endpoint": "/header-params-test/all-params",
-            "input_headers": [ "*" ],
+            "headers_to_pass": [ "*" ],
             "backend": [
                 {
                     "host": [ "{{.b6}}" ],
@@ -234,7 +229,7 @@
         {
           "endpoint": "/sequential/ok/{param}",
           "extra_config": {
-            "github.com/devopsfaith/krakend/proxy": {
+            "github.com/davron112/krakend/proxy": {
               "sequential": true
             }
           },
@@ -254,7 +249,7 @@
         {
           "endpoint": "/sequential/ko/first/{param}",
           "extra_config": {
-            "github.com/devopsfaith/krakend/proxy": {
+            "github.com/davron112/krakend/proxy": {
               "sequential": true
             }
           },
@@ -262,19 +257,19 @@
             {
               "url_pattern": "/provider/{param}",
               "host": [ "{{.b4}}" ],
-              "allow": [ "random" ]
+              "whitelist": [ "random" ]
             },
             {
               "url_pattern": "/recipient/{resp0_random}",
               "host": [ "{{.b7}}" ],
-              "allow": [ "path" ]
+              "whitelist": [ "path" ]
             }
           ]
         },
         {
           "endpoint": "/sequential/ko/last/{param}",
           "extra_config": {
-            "github.com/devopsfaith/krakend/proxy": {
+            "github.com/davron112/krakend/proxy": {
               "sequential": true
             }
           },
@@ -282,12 +277,12 @@
             {
               "url_pattern": "/provider/{param}",
               "host": [ "{{.b7}}" ],
-              "allow": [ "random" ]
+              "whitelist": [ "random" ]
             },
             {
               "url_pattern": "/recipient/{resp0_random}",
               "host": [ "{{.b4}}" ],
-              "allow": [ "path" ]
+              "whitelist": [ "path" ]
             }
           ]
         },
@@ -319,7 +314,7 @@
                     "url_pattern": "/",
                     "is_collection": true,
                     "extra_config": {
-                        "github.com/devopsfaith/krakend/proxy": {
+                        "github.com/davron112/krakend/proxy": {
                           "flatmap_filter": [
                             {
                                 "type": "del",
@@ -341,7 +336,7 @@
                     "url_pattern": "/",
                     "is_collection": true,
                     "extra_config": {
-                        "github.com/devopsfaith/krakend/proxy": {
+                        "github.com/davron112/krakend/proxy": {
                           "flatmap_filter": [
                             {
                                 "type": "move",
@@ -366,7 +361,7 @@
             "endpoint": "/sequence-accept",
             "method": "PUT",
             "extra_config": {
-                "github.com/devopsfaith/krakend/proxy": {
+                "github.com/davron112/krakend/proxy": {
                     "sequential": true
                 }
             },
@@ -384,57 +379,6 @@
                         "{{.b3}}"
                     ],
                     "url_pattern": "/"
-                }
-            ]
-        },
-        {
-            "endpoint": "/error-status-code/1",
-            "backend": [
-                {
-                    "host": [ "{{.b3}}" ],
-                    "url_pattern": "/",
-                    "extra_config":{
-                        "github.com/devopsfaith/krakend/http":{
-                            "return_error_code":true
-                        }
-                    }
-                }
-            ]
-        },
-        {
-            "endpoint": "/error-status-code/2",
-            "backend": [
-                {
-                    "host": [ "{{.b4}}" ],
-                    "url_pattern": "/",
-                    "extra_config":{
-                        "github.com/devopsfaith/krakend/http":{
-                            "return_error_code":true
-                        }
-                    }
-                }
-            ]
-        },
-        {
-            "endpoint": "/error-status-code/3",
-            "backend": [
-                {
-                    "host": [ "{{.b3}}" ],
-                    "url_pattern": "/",
-                    "extra_config":{
-                        "github.com/devopsfaith/krakend/http":{
-                            "return_error_code":true
-                        }
-                    }
-                },
-                {
-                    "host": [ "{{.b4}}" ],
-                    "url_pattern": "/",
-                    "extra_config":{
-                        "github.com/devopsfaith/krakend/http":{
-                            "return_error_code":true
-                        }
-                    }
                 }
             ]
         }

@@ -1,5 +1,4 @@
 // SPDX-License-Identifier: Apache-2.0
-
 package gin
 
 import (
@@ -10,16 +9,14 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
-	"strings"
 	"testing"
 	"time"
 
 	"github.com/gin-gonic/gin"
 
-	"github.com/davron112/lura/v2/config"
-	"github.com/davron112/lura/v2/logging"
-	"github.com/davron112/lura/v2/proxy"
-	"github.com/davron112/lura/v2/transport/http/server"
+	"github.com/davron112/lura/config"
+	"github.com/davron112/lura/proxy"
+	"github.com/davron112/lura/router"
 )
 
 func TestEndpointHandler_ok(t *testing.T) {
@@ -232,44 +229,6 @@ func TestEndpointHandler_noop(t *testing.T) {
 	time.Sleep(5 * time.Millisecond)
 }
 
-func TestCustomErrorEndpointHandler(t *testing.T) {
-	buff := bytes.NewBuffer(make([]byte, 1024))
-	logger, err := logging.NewLogger("ERROR", buff, "pref")
-	if err != nil {
-		t.Error("building the logger:", err.Error())
-		return
-	}
-	hf := CustomErrorEndpointHandler(logger, server.DefaultToHTTPError)
-
-	endpoint := &config.EndpointConfig{
-		Method:      "GET",
-		Endpoint:    "/",
-		Timeout:     time.Minute,
-		CacheTTL:    6 * time.Hour,
-		QueryString: []string{"b", "c[]", "d"},
-	}
-
-	p := func(_ context.Context, _ *proxy.Request) (*proxy.Response, error) {
-		return nil, errors.New("this is a dummy error")
-	}
-
-	s := startGinServer(hf(endpoint, p))
-
-	req, _ := http.NewRequest(
-		"GET",
-		"http://127.0.0.1:8080/_gin_endpoint/a?a=42&b=1&c[]=x&c[]=y&d=1&d=2",
-		ioutil.NopCloser(&bytes.Buffer{}),
-	)
-	req.Header.Set("Content-Type", "application/json")
-
-	w := httptest.NewRecorder()
-	s.ServeHTTP(w, req)
-
-	if content := buff.String(); !strings.Contains(content, "pref ERROR: [ENDPOINT: /] this is a dummy error") {
-		t.Error("unexpected log content", content)
-	}
-}
-
 type endpointHandlerTestCase struct {
 	timeout            time.Duration
 	proxy              proxy.Proxy
@@ -298,17 +257,13 @@ func (tc endpointHandlerTestCase) test(t *testing.T) {
 		endpoint.HeadersToPass = tc.headers
 	}
 
-	s := startGinServer(EndpointHandler(endpoint, tc.proxy))
+	server := startGinServer(EndpointHandler(endpoint, tc.proxy))
 
-	req, _ := http.NewRequest(
-		tc.method,
-		"http://127.0.0.1:8080/_gin_endpoint/a?a=42&b=1&c[]=x&c[]=y&d=1&d=2",
-		ioutil.NopCloser(&bytes.Buffer{}),
-	)
+	req, _ := http.NewRequest(tc.method, "http://127.0.0.1:8080/_gin_endpoint/a?a=42&b=1&c[]=x&c[]=y&d=1&d=2", ioutil.NopCloser(&bytes.Buffer{}))
 	req.Header.Set("Content-Type", "application/json")
 
 	w := httptest.NewRecorder()
-	s.ServeHTTP(w, req)
+	server.ServeHTTP(w, req)
 
 	body, ioerr := ioutil.ReadAll(w.Result().Body)
 	if ioerr != nil {
@@ -321,11 +276,11 @@ func (tc endpointHandlerTestCase) test(t *testing.T) {
 	if resp.Header.Get("Cache-Control") != tc.expectedCache {
 		t.Error("Cache-Control error:", resp.Header.Get("Cache-Control"))
 	}
-	if tc.completed && resp.Header.Get(server.CompleteResponseHeaderName) != server.HeaderCompleteResponseValue {
-		t.Error(server.CompleteResponseHeaderName, "error:", resp.Header.Get(server.CompleteResponseHeaderName))
+	if tc.completed && resp.Header.Get(router.CompleteResponseHeaderName) != router.HeaderCompleteResponseValue {
+		t.Error(router.CompleteResponseHeaderName, "error:", resp.Header.Get(router.CompleteResponseHeaderName))
 	}
-	if !tc.completed && resp.Header.Get(server.CompleteResponseHeaderName) != server.HeaderIncompleteResponseValue {
-		t.Error(server.CompleteResponseHeaderName, "error:", resp.Header.Get(server.CompleteResponseHeaderName))
+	if !tc.completed && resp.Header.Get(router.CompleteResponseHeaderName) != router.HeaderIncompleteResponseValue {
+		t.Error(router.CompleteResponseHeaderName, "error:", resp.Header.Get(router.CompleteResponseHeaderName))
 	}
 	if resp.Header.Get("Content-Type") != tc.expectedContent {
 		t.Error("Content-Type error:", resp.Header.Get("Content-Type"))
@@ -348,10 +303,10 @@ func (tc endpointHandlerTestCase) test(t *testing.T) {
 
 func startGinServer(handlerFunc gin.HandlerFunc) *gin.Engine {
 	gin.SetMode(gin.TestMode)
-	r := gin.New()
-	r.GET("/_gin_endpoint/:param", ctxMiddleware, handlerFunc)
+	router := gin.New()
+	router.GET("/_gin_endpoint/:param", ctxMiddleware, handlerFunc)
 
-	return r
+	return router
 }
 
 func ctxMiddleware(c *gin.Context) {

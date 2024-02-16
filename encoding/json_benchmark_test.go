@@ -1,5 +1,4 @@
 // SPDX-License-Identifier: Apache-2.0
-
 package encoding
 
 import (
@@ -9,10 +8,7 @@ import (
 )
 
 func BenchmarkDecoder(b *testing.B) {
-	for _, dec := range []struct {
-		name    string
-		decoder func(io.Reader, *map[string]interface{}) error
-	}{
+	for _, dec := range []decoderTestCase{
 		{
 			name:    "json-collection",
 			decoder: NewJSONDecoder(true),
@@ -44,11 +40,20 @@ func BenchmarkDecoder(b *testing.B) {
 			},
 		} {
 			b.Run(dec.name+"/"+tc.name, func(b *testing.B) {
-				var result map[string]interface{}
-				for i := 0; i < b.N; i++ {
-					_ = dec.decoder(strings.NewReader(tc.input), &result)
-				}
+				benchmarkDecoder(b, tc.input, dec.decoder)
 			})
 		}
 	}
+}
+
+func benchmarkDecoder(b *testing.B, input string, dec func(io.Reader, *map[string]interface{}) error) {
+	var result map[string]interface{}
+	for i := 0; i < b.N; i++ {
+		_ = dec(strings.NewReader(`["foo", "bar", "supu"]`), &result)
+	}
+}
+
+type decoderTestCase struct {
+	name    string
+	decoder func(io.Reader, *map[string]interface{}) error
 }

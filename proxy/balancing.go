@@ -1,5 +1,4 @@
 // SPDX-License-Identifier: Apache-2.0
-
 package proxy
 
 import (
@@ -7,14 +6,14 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/davron112/lura/v2/config"
-	"github.com/davron112/lura/v2/sd"
+	"github.com/davron112/lura/config"
+	"github.com/davron112/lura/sd"
 )
 
 // NewLoadBalancedMiddleware creates proxy middleware adding the most perfomant balancer
 // over a default subscriber
 func NewLoadBalancedMiddleware(remote *config.Backend) Middleware {
-	return NewLoadBalancedMiddlewareWithSubscriber(sd.GetRegister().Get(remote.SD)(remote))
+	return NewLoadBalancedMiddlewareWithSubscriber(sd.GetSubscriber(remote))
 }
 
 // NewLoadBalancedMiddlewareWithSubscriber creates proxy middleware adding the most perfomant balancer
@@ -26,13 +25,13 @@ func NewLoadBalancedMiddlewareWithSubscriber(subscriber sd.Subscriber) Middlewar
 // NewRoundRobinLoadBalancedMiddleware creates proxy middleware adding a round robin balancer
 // over a default subscriber
 func NewRoundRobinLoadBalancedMiddleware(remote *config.Backend) Middleware {
-	return NewRoundRobinLoadBalancedMiddlewareWithSubscriber(sd.GetRegister().Get(remote.SD)(remote))
+	return NewRoundRobinLoadBalancedMiddlewareWithSubscriber(sd.GetSubscriber(remote))
 }
 
 // NewRandomLoadBalancedMiddleware creates proxy middleware adding a random balancer
 // over a default subscriber
 func NewRandomLoadBalancedMiddleware(remote *config.Backend) Middleware {
-	return NewRandomLoadBalancedMiddlewareWithSubscriber(sd.GetRegister().Get(remote.SD)(remote))
+	return NewRandomLoadBalancedMiddlewareWithSubscriber(sd.GetSubscriber(remote))
 }
 
 // NewRoundRobinLoadBalancedMiddlewareWithSubscriber creates proxy middleware adding a round robin

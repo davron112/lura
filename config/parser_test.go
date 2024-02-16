@@ -1,5 +1,4 @@
 // SPDX-License-Identifier: Apache-2.0
-
 package config
 
 import (
@@ -11,7 +10,7 @@ import (
 func TestNewParser_ok(t *testing.T) {
 	configPath := "/tmp/ok.json"
 	configContent := []byte(`{
-    "version": 3,
+    "version": 2,
     "name": "My lovely gateway",
     "port": 8080,
     "cache_ttl": "3600s",
@@ -20,26 +19,6 @@ func TestNewParser_ok(t *testing.T) {
 		"public_key":  "cert.pem",
 		"private_key": "key.pem"
 	},
-	"async_agent": [
-		{
-			"name": "agent",
-			"connection": {
-				"max_retries": 2
-			},
-			"consumer": {
-				"topic": "foo.*"
-			},
-            "backend": [
-                {
-                    "host": [
-                        "https://api.github.com"
-                    ],
-                    "url_pattern": "/",
-                    "extra_config" : {"user":"test","hits":6,"parents":["gomez","morticia"]}
-                }
-            ]
-		}
-	],
     "endpoints": [
         {
             "endpoint": "/github",
@@ -51,7 +30,7 @@ func TestNewParser_ok(t *testing.T) {
                         "https://api.github.com"
                     ],
                     "url_pattern": "/",
-                    "allow": [
+                    "whitelist": [
                         "authorizations_url",
                         "code_search_url"
                     ],
@@ -82,7 +61,7 @@ func TestNewParser_ok(t *testing.T) {
                         "https://jsonplaceholder.typicode.com"
                     ],
                     "url_pattern": "/posts/{id}",
-                    "deny": [
+                    "blacklist": [
                         "userId"
                     ]
                 },
@@ -147,10 +126,6 @@ func TestNewParser_ok(t *testing.T) {
 	if err := os.Remove(configPath); err != nil {
 		t.FailNow()
 	}
-
-	if l := len(serviceConfig.AsyncAgents); l != 1 {
-		t.Errorf("Unexpected number of agents. Have %d, want 1", l)
-	}
 }
 
 func TestNewParser_errorMessages(t *testing.T) {
@@ -206,7 +181,7 @@ func TestNewParser_errorMessages(t *testing.T) {
 			name: "case7",
 			path: "/tmp/ok.json",
 			content: []byte(`{
-	"version": 3,
+	"version": 2,
 	"name": "My lovely gateway",
 	"port": 8080,
 	"cache_ttl": 3600
@@ -286,7 +261,7 @@ func TestNewParser_initError(t *testing.T) {
 	}
 
 	_, err := NewParser().Parse(wrongConfigPath)
-	if err == nil || err.Error() != "'/tmp/unmarshall.json': unsupported version: 0 (want: 3)" {
+	if err == nil || err.Error() != "'/tmp/unmarshall.json': Unsupported version: 0 (want: 2)" {
 		t.Error("Error expected. Got", err)
 	}
 	if err = os.Remove(wrongConfigPath); err != nil {

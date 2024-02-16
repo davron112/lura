@@ -1,5 +1,4 @@
 // SPDX-License-Identifier: Apache-2.0
-
 package proxy
 
 import (
@@ -8,7 +7,7 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/davron112/lura/v2/encoding"
+	"github.com/davron112/lura/encoding"
 )
 
 // HTTPResponseParser defines how the response is parsed from http.Response to Response object
