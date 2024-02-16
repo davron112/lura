@@ -7,7 +7,7 @@ require (
 	github.com/gin-gonic/gin v1.9.1
 	github.com/go-chi/chi/v5 v5.0.4
 	github.com/gorilla/mux v1.8.0
-	github.com/krakendio/flatmap v1.1.1
+	github.com/davron112/flatmap v1.1.1
 	github.com/urfave/negroni/v2 v2.0.2
 	github.com/valyala/fastrand v1.1.0
 )
