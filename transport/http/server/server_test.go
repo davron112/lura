@@ -64,26 +64,6 @@ func TestRunServer_TLS(t *testing.T) {
 		t.Errorf("unexpected status code: %d", resp.StatusCode)
 		return
 	}
-
-	// now lets initialize the global default transport and use a regular
-	// client to connect to the server
-	InitHTTPDefaultTransport(config.ServiceConfig{
-		ClientTLS: &config.ClientTLS{
-			CaCerts:             []string{"ca.pem"},
-			DisableSystemCaPool: true,
-		},
-	})
-	rawClient := http.Client{}
-	resp, err = rawClient.Get(fmt.Sprintf("https://localhost:%d", port))
-	if err != nil {
-		t.Error(err)
-		return
-	}
-	if resp.StatusCode != 200 {
-		t.Errorf("unexpected status code: %d", resp.StatusCode)
-		return
-	}
-
 	cancel()
 
 	if err = <-done; err != nil {
@@ -282,7 +262,7 @@ func Test_parseTLSVersion(t *testing.T) {
 
 func Test_parseCurveIDs(t *testing.T) {
 	original := []uint16{1, 2, 3}
-	cs := parseCurveIDs(original)
+	cs := parseCurveIDs(&config.TLS{CurvePreferences: original})
 	for k, v := range cs {
 		if original[k] != uint16(v) {
 			t.Errorf("unexpected curves %v. expected: %v", cs, original)
@@ -292,7 +272,7 @@ func Test_parseCurveIDs(t *testing.T) {
 
 func Test_parseCipherSuites(t *testing.T) {
 	original := []uint16{1, 2, 3}
-	cs := parseCipherSuites(original)
+	cs := parseCipherSuites(&config.TLS{CipherSuites: original})
 	for k, v := range cs {
 		if original[k] != uint16(v) {
 			t.Errorf("unexpected ciphersuites %v. expected: %v", cs, original)

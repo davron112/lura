@@ -26,10 +26,6 @@ import (
 func NewGraphQLMiddleware(logger logging.Logger, remote *config.Backend) Middleware {
 	opt, err := graphql.GetOptions(remote.ExtraConfig)
 	if err != nil {
-		if err != graphql.ErrNoConfigFound {
-			logger.Warning(
-				fmt.Sprintf("[BACKEND: %s][GraphQL] %s", remote.URLPattern, err.Error()))
-		}
 		return EmptyMiddleware
 	}
 
@@ -90,9 +86,6 @@ func NewGraphQLMiddleware(logger logging.Logger, remote *config.Backend) Middlew
 				req.Body = io.NopCloser(bytes.NewReader([]byte{}))
 				req.Method = string(opt.Method)
 				req.Headers["Content-Length"] = []string{"0"}
-				// even when there is no content, we just set the content-type
-				// header to be safe if the server side checks it:
-				req.Headers["Content-Type"] = []string{"application/json"}
 				if req.Query != nil {
 					for k, vs := range q {
 						for _, v := range vs {
@@ -116,7 +109,6 @@ func NewGraphQLMiddleware(logger logging.Logger, remote *config.Backend) Middlew
 			req.Body = io.NopCloser(bytes.NewReader(b))
 			req.Method = string(opt.Method)
 			req.Headers["Content-Length"] = []string{strconv.Itoa(len(b))}
-			req.Headers["Content-Type"] = []string{"application/json"}
 
 			return next[0](ctx, req)
 		}

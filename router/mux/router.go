@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 /*
-Package mux provides some basic implementations for building routers based on net/http mux
+	Package mux provides some basic implementations for building routers based on net/http mux
 */
 package mux
 
@@ -18,11 +18,8 @@ import (
 )
 
 // DefaultDebugPattern is the default pattern used to define the debug endpoint
-const (
-	DefaultDebugPattern = "/__debug/"
-	DefaultEchoPattern  = "/__echo/"
-	logPrefix           = "[SERVICE: Mux]"
-)
+const DefaultDebugPattern = "/__debug/"
+const logPrefix = "[SERVICE: Mux]"
 
 // RunServerFunc is a func that will run the http Server with the given params.
 type RunServerFunc func(context.Context, config.ServiceConfig, http.Handler) error
@@ -35,7 +32,6 @@ type Config struct {
 	ProxyFactory   proxy.Factory
 	Logger         logging.Logger
 	DebugPattern   string
-	EchoPattern    string
 	RunServer      RunServerFunc
 }
 
@@ -54,7 +50,6 @@ func DefaultFactory(pf proxy.Factory, logger logging.Logger) router.Factory {
 			ProxyFactory:   pf,
 			Logger:         logger,
 			DebugPattern:   DefaultDebugPattern,
-			EchoPattern:    DefaultEchoPattern,
 			RunServer:      server.RunServer,
 		},
 	}
@@ -112,24 +107,6 @@ func (r httpRouter) Run(cfg config.ServiceConfig) {
 			r.cfg.Engine.Handle(r.cfg.DebugPattern, method, debugHandler)
 		}
 	}
-
-	if cfg.Echo {
-		echoHandler := EchoHandler()
-		for _, method := range []string{
-			http.MethodGet,
-			http.MethodPost,
-			http.MethodPut,
-			http.MethodPatch,
-			http.MethodDelete,
-			http.MethodHead,
-			http.MethodOptions,
-			http.MethodConnect,
-			http.MethodTrace,
-		} {
-			r.cfg.Engine.Handle(r.cfg.EchoPattern, method, echoHandler)
-		}
-	}
-
 	r.cfg.Engine.Handle("/__health", "GET", http.HandlerFunc(HealthHandler))
 
 	server.InitHTTPDefaultTransport(cfg)

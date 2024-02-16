@@ -17,8 +17,7 @@ import (
 var (
 	extraCfg = config.ExtraConfig{
 		Namespace: map[string]interface{}{
-			"shadow":         true,
-			"shadow_timeout": "10s",
+			"shadow": true,
 		},
 	}
 	badExtra = config.ExtraConfig{
@@ -40,19 +39,15 @@ func TestIsShadowBackend(t *testing.T) {
 	cfg := &config.Backend{ExtraConfig: extraCfg}
 	badCfg := &config.Backend{ExtraConfig: badExtra}
 
-	d, ok := isShadowBackend(cfg)
-	if !ok {
+	if !isShadowBackend(cfg) {
 		t.Error("The shadow backend should be true")
 	}
-	if d != 10*time.Second {
-		t.Errorf("Invalid duration %s", d)
-	}
 
-	if _, ok := isShadowBackend(&config.Backend{}); ok {
+	if isShadowBackend(&config.Backend{}) {
 		t.Error("The shadow backend should be false")
 	}
 
-	if _, ok := isShadowBackend(badCfg); ok {
+	if isShadowBackend(badCfg) {
 		t.Error("The shadow backend should be false")
 	}
 }

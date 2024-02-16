@@ -155,73 +155,43 @@ func buildDictPath(accumulator map[string]interface{}, fields []string) map[stri
 	return p
 }
 
-func buildDenyTree(path []string, tree map[string]interface{}) {
-	if len(path) == 0 {
-		return
-	}
-	n := path[0]
-	if len(path) == 1 {
-		// this is the node to be deleted, so, any other child
-		// that is under this node, does not need to be visited:
-		// we "delete" any descendant from this node
-		tree[n] = nil
-		return
-	}
-
-	if k, ok := tree[n]; ok {
-		if k == nil {
-			// all this child should be deleted, so, no matter
-			// if the entry says to delete some extra child..
-			// everything will be deleted
-			return
-		}
-		childTree, ok := k.(map[string]interface{})
-		if !ok {
-			// this should never happen if this algorithm is correct
-			tree[n] = nil
-			return
-		}
-		buildDenyTree(path[1:], childTree)
-		return
-	}
-
-	// it the key does not exist, we need to keep building the children,
-	// and at this point we know that path is at least len = 2, and that
-	// tree[n] does not exist
-	childTree := make(map[string]interface{}, 1)
-	tree[n] = childTree
-	buildDenyTree(path[1:], childTree)
-}
-
-func recDelete(ref map[string]interface{}, v interface{}) {
-	m, ok := v.(map[string]interface{})
-	if !ok || m == nil {
-		return
-	}
-
-	for rk, rv := range ref {
-		dv, dok := m[rk]
-		if !dok {
-			continue
-		}
-		if rv == nil {
-			delete(m, rk)
-			continue
-		}
-		recDelete(rv.(map[string]interface{}), dv)
-	}
-}
-
 func newDenylistingFilter(blacklist []string) propertyFilter {
-	bl := make(map[string]interface{}, len(blacklist))
+	bl := make(map[string][]string, len(blacklist))
 	for _, key := range blacklist {
 		keys := strings.Split(key, ".")
-		buildDenyTree(keys, bl)
+		if len(keys) > 1 {
+			if sub, ok := bl[keys[0]]; ok {
+				bl[keys[0]] = append(sub, keys[1])
+			} else {
+				bl[keys[0]] = []string{keys[1]}
+			}
+		} else {
+			bl[keys[0]] = []string{}
+		}
 	}
 
 	return func(entity *Response) {
-		recDelete(bl, entity.Data)
+		for k, sub := range bl {
+			if len(sub) == 0 {
+				delete(entity.Data, k)
+			} else {
+				if tmp := blacklistFilterSub(entity.Data[k], sub); len(tmp) > 0 {
+					entity.Data[k] = tmp
+				}
+			}
+		}
 	}
+}
+
+func blacklistFilterSub(v interface{}, blacklist []string) map[string]interface{} {
+	tmp, ok := v.(map[string]interface{})
+	if !ok {
+		return map[string]interface{}{}
+	}
+	for _, key := range blacklist {
+		delete(tmp, key)
+	}
+	return tmp
 }
 
 const flatmapKey = "flatmap_filter"
@@ -280,7 +250,7 @@ func newFlatmapFormatter(cfg config.ExtraConfig, target, group string) *flatmapF
 				if len(vs) == 0 {
 					return nil
 				}
-				var ops []flatmapOp
+				ops := []flatmapOp{}
 				for _, v := range vs {
 					m, ok := v.(map[string]interface{})
 					if !ok {

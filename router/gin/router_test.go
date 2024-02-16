@@ -163,7 +163,6 @@ func TestDefaultFactory_ko(t *testing.T) {
 
 	serviceCfg := config.ServiceConfig{
 		Debug: true,
-		Echo:  true,
 		Port:  8073,
 		Endpoints: []*config.EndpointConfig{
 			{
@@ -222,7 +221,6 @@ func TestDefaultFactory_proxyFactoryCrash(t *testing.T) {
 
 	serviceCfg := config.ServiceConfig{
 		Debug: true,
-		Echo:  true,
 		Port:  8074,
 		Endpoints: []*config.EndpointConfig{
 			{

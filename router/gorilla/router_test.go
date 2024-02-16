@@ -200,7 +200,6 @@ func TestDefaultFactory_proxyFactoryCrash(t *testing.T) {
 
 	serviceCfg := config.ServiceConfig{
 		Debug: true,
-		Echo:  true,
 		Port:  8084,
 		Endpoints: []*config.EndpointConfig{
 			{

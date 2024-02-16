@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 /*
-Package gin provides some basic implementations for building routers based on gin-gonic/gin
+	Package gin provides some basic implementations for building routers based on gin-gonic/gin
 */
 package gin
 
@@ -106,7 +106,7 @@ func (r ginRouter) Run(cfg config.ServiceConfig) {
 	go r.cfg.Engine.Run("XXXX")
 
 	r.cfg.Logger.Info("[SERVICE: Gin] Listening on port:", cfg.Port)
-	if err := r.runServerF(r.ctx, cfg, r.cfg.Engine.Handler()); err != nil && err != http.ErrServerClosed {
+	if err := r.runServerF(r.ctx, cfg, r.cfg.Engine); err != nil && err != http.ErrServerClosed {
 		r.cfg.Logger.Error(logPrefix, err.Error())
 	}
 
@@ -116,10 +116,6 @@ func (r ginRouter) Run(cfg config.ServiceConfig) {
 func (r ginRouter) registerEndpointsAndMiddlewares(cfg config.ServiceConfig) {
 	if cfg.Debug {
 		r.cfg.Engine.Any("/__debug/*param", DebugHandler(r.cfg.Logger))
-	}
-
-	if cfg.Echo {
-		r.cfg.Engine.Any("/__echo/*param", EchoHandler())
 	}
 
 	endpointGroup := r.cfg.Engine.Group("/")
@@ -133,6 +129,7 @@ func (r ginRouter) registerEndpointsAndMiddlewares(cfg config.ServiceConfig) {
 			r.registerOptionEndpoints(endpointGroup)
 		}
 	}
+
 }
 
 func (r ginRouter) registerKrakendEndpoints(rg *gin.RouterGroup, cfg config.ServiceConfig) {
@@ -169,7 +166,7 @@ func (r ginRouter) registerKrakendEndpoint(rg *gin.RouterGroup, method string, e
 	case http.MethodDelete:
 		rg.DELETE(path, h)
 	default:
-		r.cfg.Logger.Error(logPrefix, "[ENDPOINT:", path, "] Unsupported method", method)
+		r.cfg.Logger.Error(logPrefix, "Unsupported method", method)
 		return
 	}
 

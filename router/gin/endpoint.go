@@ -20,19 +20,10 @@ const requestParamsAsterisk string = "*"
 // HandlerFactory creates a handler function that adapts the gin router with the injected proxy
 type HandlerFactory func(*config.EndpointConfig, proxy.Proxy) gin.HandlerFunc
 
-// ErrorResponseWriter writes the string representation of an error into the response body
-// and sets a Content-Type header for errors that implement the encodedResponseError interface.
-var ErrorResponseWriter = func(c *gin.Context, err error) {
-	if te, ok := err.(encodedResponseError); ok && te.Encoding() != "" {
-		c.Header("Content-Type", te.Encoding())
-	}
-	c.Writer.WriteString(err.Error())
-}
-
-// EndpointHandler implements the HandlerFactory interface using the default ToHTTPError function
+// EndpointHandler implements the HandleFactory interface using the default ToHTTPError function
 var EndpointHandler = CustomErrorEndpointHandler(logging.NoOp, server.DefaultToHTTPError)
 
-// CustomErrorEndpointHandler returns a HandlerFactory using the injected ToHTTPError function and logger
+// CustomErrorEndpointHandler returns a HandleFactory using the injected ToHTTPError function and logger
 func CustomErrorEndpointHandler(logger logging.Logger, errF server.ToHTTPError) HandlerFactory {
 	return func(configuration *config.EndpointConfig, prxy proxy.Proxy) gin.HandlerFunc {
 		cacheControlHeaderValue := fmt.Sprintf("public, max-age=%d", int(configuration.CacheTTL.Seconds()))
@@ -97,7 +88,10 @@ func CustomErrorEndpointHandler(logger logging.Logger, errF server.ToHTTPError) 
 						c.Status(errF(err))
 					}
 					if returnErrorMsg {
-						ErrorResponseWriter(c, err)
+						if te, ok := err.(encodedResponseError); ok && te.Encoding() != "" {
+							c.Header("Content-Type", te.Encoding())
+						}
+						c.Writer.WriteString(err.Error())
 					}
 					cancel()
 					return
