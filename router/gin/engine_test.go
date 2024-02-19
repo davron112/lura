@@ -7,8 +7,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/davron112/lura/v2/config"
 	"github.com/gin-gonic/gin"
-	"github.com/luraproject/lura/v2/config"
 )
 
 func TestNewEngine_contextIsPropagated(t *testing.T) {

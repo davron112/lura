@@ -14,12 +14,11 @@ import (
 	"testing"
 	"time"
 
+	"github.com/davron112/lura/v2/config"
+	"github.com/davron112/lura/v2/logging"
+	"github.com/davron112/lura/v2/proxy"
+	"github.com/davron112/lura/v2/transport/http/server"
 	"github.com/gin-gonic/gin"
-
-	"github.com/luraproject/lura/v2/config"
-	"github.com/luraproject/lura/v2/logging"
-	"github.com/luraproject/lura/v2/proxy"
-	"github.com/luraproject/lura/v2/transport/http/server"
 )
 
 func TestEndpointHandler_ok(t *testing.T) {

@@ -1,4 +1,4 @@
-module github.com/luraproject/lura/v2
+module github.com/davron112/lura/v2
 
 go 1.17
 
@@ -8,7 +8,7 @@ require (
 	github.com/gin-gonic/gin v1.9.0
 	github.com/go-chi/chi/v5 v5.0.4
 	github.com/gorilla/mux v1.8.0
-	github.com/krakendio/flatmap v1.1.1
+	github.com/davron112/flatmap v1.1.1
 	github.com/mattn/go-isatty v0.0.17 // indirect
 	github.com/urfave/negroni/v2 v2.0.2
 	github.com/valyala/fastrand v1.1.0

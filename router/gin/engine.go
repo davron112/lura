@@ -14,14 +14,14 @@ import (
 	"sync"
 	"time"
 
+	"github.com/davron112/lura/v2/config"
+	"github.com/davron112/lura/v2/core"
+	"github.com/davron112/lura/v2/logging"
+	"github.com/davron112/lura/v2/transport/http/server"
 	"github.com/gin-gonic/gin"
-	"github.com/luraproject/lura/v2/config"
-	"github.com/luraproject/lura/v2/core"
-	"github.com/luraproject/lura/v2/logging"
-	"github.com/luraproject/lura/v2/transport/http/server"
 )
 
-const Namespace = "github_com/luraproject/lura/router/gin"
+const Namespace = "github_com/davron112/lura/router/gin"
 
 type EngineOptions struct {
 	Logger    logging.Logger

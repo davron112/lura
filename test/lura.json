@@ -6,7 +6,7 @@
     "cache_ttl": "3600s",
     "timeout": "3s",
     "extra_config":{
-        "github_com/luraproject/lura/router/gin":{
+        "github_com/davron112/lura/router/gin":{
             "return_error_msg":true
         }
     },

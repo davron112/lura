@@ -21,18 +21,17 @@ import (
 	"text/template"
 	"time"
 
+	"github.com/davron112/lura/v2/config"
+	"github.com/davron112/lura/v2/logging"
+	"github.com/davron112/lura/v2/proxy"
+	"github.com/davron112/lura/v2/router/chi"
+	"github.com/davron112/lura/v2/router/gin"
+	"github.com/davron112/lura/v2/router/gorilla"
+	"github.com/davron112/lura/v2/router/httptreemux"
+	luranegroni "github.com/davron112/lura/v2/router/negroni"
+	"github.com/davron112/lura/v2/transport/http/server"
 	ginlib "github.com/gin-gonic/gin"
 	"github.com/urfave/negroni/v2"
-
-	"github.com/luraproject/lura/v2/config"
-	"github.com/luraproject/lura/v2/logging"
-	"github.com/luraproject/lura/v2/proxy"
-	"github.com/luraproject/lura/v2/router/chi"
-	"github.com/luraproject/lura/v2/router/gin"
-	"github.com/luraproject/lura/v2/router/gorilla"
-	"github.com/luraproject/lura/v2/router/httptreemux"
-	luranegroni "github.com/luraproject/lura/v2/router/negroni"
-	"github.com/luraproject/lura/v2/transport/http/server"
 )
 
 func TestKrakenD_ginRouter(t *testing.T) {

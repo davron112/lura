@@ -2,8 +2,8 @@
 
 # The Lura Project framework
 
-[![Go Report Card](https://goreportcard.com/badge/github.com/luraproject/lura)](https://goreportcard.com/report/github.com/luraproject/lura)
-[![GoDoc](https://godoc.org/github.com/luraproject/lura?status.svg)](https://godoc.org/github.com/luraproject/lura)
+[![Go Report Card](https://goreportcard.com/badge/github.com/davron112/lura)](https://goreportcard.com/report/github.com/davron112/lura)
+[![GoDoc](https://godoc.org/github.com/davron112/lura?status.svg)](https://godoc.org/github.com/davron112/lura)
 ![CII Best Practices](https://bestpractices.coreinfrastructure.org/projects/3151/badge)
 ![Docker Pulls](https://img.shields.io/docker/pulls/devopsfaith/krakend.svg)
 [![Slack Widget](https://img.shields.io/badge/join-us%20on%20slack-gray.svg?longCache=true&logo=slack&colorB=red)](https://gophers.slack.com/messages/lura)
@@ -49,11 +49,11 @@ The source code for the [Lura project](https://luraproject.org) framework. It is
 
 Use this repository if you want to **build from source your API Gateway** or if you want to **reuse the components in another application**.
 
-If you need a fully functional API Gateway you can [download the KrakenD binary for your architecture](http://www.krakend.io/download) or [build it yourself](https://github.com/krakendio/krakend-ce).
+If you need a fully functional API Gateway you can [download the KrakenD binary for your architecture](http://www.krakend.io/download) or [build it yourself](https://github.com/davron112/krakend-ce).
 
 
 ## Library Usage
-The Lura project is presented as a **Go library** that you can include in your own Go application to build a powerful proxy or API gateway. For a complete example, check the [KrakenD CE repository](https://github.com/krakendio/krakend-ce).
+The Lura project is presented as a **Go library** that you can include in your own Go application to build a powerful proxy or API gateway. For a complete example, check the [KrakenD CE repository](https://github.com/davron112/krakend-ce).
 
 Of course, you will need [Go installed](https://golang.org/doc/install) in your system to compile the code.
 
@@ -67,11 +67,11 @@ A ready to use example:
         "log"
         "os"
 
-        "github.com/luraproject/lura/config"
-        "github.com/luraproject/lura/logging"
-        "github.com/luraproject/lura/proxy"
-        "github.com/luraproject/lura/router/gin"
-    )
+        "github.com/davron112/lura/config"
+        "github.com/davron112/lura/logging"
+        "github.com/davron112/lura/proxy"
+        "github.com/davron112/lura/router/gin"
+)
 
     func main() {
         port := flag.Int("p", 0, "Port of the service")
