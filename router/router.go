@@ -6,8 +6,8 @@ package router
 import (
 	"context"
 
-	"github.com/luraproject/lura/config"
-	http "github.com/luraproject/lura/transport/http/server"
+	"github.com/davron112/lura/config"
+	http "github.com/davron112/lura/transport/http/server"
 )
 
 // Router sets up the public layer exposed to the users

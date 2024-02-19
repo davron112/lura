@@ -4,8 +4,8 @@ package router
 import (
 	"testing"
 
-	"github.com/luraproject/lura/config"
-	"github.com/luraproject/lura/proxy"
+	"github.com/davron112/lura/config"
+	"github.com/davron112/lura/proxy"
 )
 
 func TestIsValidSequentialEndpoint_ok(t *testing.T) {

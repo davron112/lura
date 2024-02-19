@@ -8,8 +8,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/luraproject/lura/config"
-	"github.com/luraproject/lura/proxy/plugin"
+	"github.com/davron112/lura/config"
+	"github.com/davron112/lura/proxy/plugin"
 )
 
 func TestNewPluginMiddleware(t *testing.T) {

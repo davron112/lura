@@ -11,10 +11,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/davron112/lura/config"
+	"github.com/davron112/lura/encoding"
+	"github.com/davron112/lura/proxy"
 	"github.com/gin-gonic/gin"
-	"github.com/luraproject/lura/config"
-	"github.com/luraproject/lura/encoding"
-	"github.com/luraproject/lura/proxy"
 )
 
 func TestRender_Negotiated_ok(t *testing.T) {

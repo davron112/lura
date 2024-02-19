@@ -6,8 +6,8 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/luraproject/lura/config"
-	"github.com/luraproject/lura/sd"
+	"github.com/davron112/lura/config"
+	"github.com/davron112/lura/sd"
 )
 
 // NewLoadBalancedMiddleware creates proxy middleware adding the most perfomant balancer

@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"sync"
 
-	"github.com/luraproject/lura/router"
+	"github.com/davron112/lura/router"
 )
 
 // Engine defines the minimun required interface for the mux compatible engine

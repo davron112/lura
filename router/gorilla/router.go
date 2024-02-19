@@ -7,12 +7,11 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/davron112/lura/logging"
+	"github.com/davron112/lura/proxy"
+	"github.com/davron112/lura/router"
+	"github.com/davron112/lura/router/mux"
 	gorilla "github.com/gorilla/mux"
-
-	"github.com/luraproject/lura/logging"
-	"github.com/luraproject/lura/proxy"
-	"github.com/luraproject/lura/router"
-	"github.com/luraproject/lura/router/mux"
 )
 
 // DefaultFactory returns a net/http mux router factory with the injected proxy factory and logger

@@ -2,8 +2,8 @@
 package sd
 
 import (
-	"github.com/luraproject/lura/config"
-	"github.com/luraproject/lura/register"
+	"github.com/davron112/lura/config"
+	"github.com/davron112/lura/register"
 )
 
 // RegisterSubscriberFactory registers the received factory

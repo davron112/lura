@@ -8,8 +8,8 @@ import (
 	"plugin"
 	"strings"
 
-	luraplugin "github.com/luraproject/lura/plugin"
-	"github.com/luraproject/lura/register"
+	luraplugin "github.com/davron112/lura/plugin"
+	"github.com/davron112/lura/register"
 )
 
 var clientRegister = register.New()

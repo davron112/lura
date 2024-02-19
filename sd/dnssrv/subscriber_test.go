@@ -7,8 +7,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/luraproject/lura/config"
-	"github.com/luraproject/lura/sd"
+	"github.com/davron112/lura/config"
+	"github.com/davron112/lura/sd"
 )
 
 func TestSubscriber_New(t *testing.T) {

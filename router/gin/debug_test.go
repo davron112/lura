@@ -8,9 +8,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/davron112/lura/logging"
 	"github.com/gin-gonic/gin"
-
-	"github.com/luraproject/lura/logging"
 )
 
 func TestDebugHandler(t *testing.T) {

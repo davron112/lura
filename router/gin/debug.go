@@ -4,9 +4,8 @@ package gin
 import (
 	"io/ioutil"
 
+	"github.com/davron112/lura/logging"
 	"github.com/gin-gonic/gin"
-
-	"github.com/luraproject/lura/logging"
 )
 
 // DebugHandler creates a dummy handler function, useful for quick integration tests

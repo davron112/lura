@@ -7,7 +7,7 @@ import (
 	"plugin"
 	"testing"
 
-	"github.com/luraproject/lura/config"
+	"github.com/davron112/lura/config"
 )
 
 func TestLoad_ok(t *testing.T) {

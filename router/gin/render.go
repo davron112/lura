@@ -6,10 +6,10 @@ import (
 	"net/http"
 	"sync"
 
+	"github.com/davron112/lura/config"
+	"github.com/davron112/lura/encoding"
+	"github.com/davron112/lura/proxy"
 	"github.com/gin-gonic/gin"
-	"github.com/luraproject/lura/config"
-	"github.com/luraproject/lura/encoding"
-	"github.com/luraproject/lura/proxy"
 )
 
 // Render defines the signature of the functions to be use for the final response

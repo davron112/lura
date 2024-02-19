@@ -6,7 +6,7 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/luraproject/lura/config"
+	"github.com/davron112/lura/config"
 )
 
 func TestNewStaticMiddleware_multipleNext(t *testing.T) {

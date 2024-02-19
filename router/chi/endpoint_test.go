@@ -12,11 +12,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/davron112/lura/config"
+	"github.com/davron112/lura/proxy"
+	"github.com/davron112/lura/router"
 	"github.com/go-chi/chi"
-
-	"github.com/luraproject/lura/config"
-	"github.com/luraproject/lura/proxy"
-	"github.com/luraproject/lura/router"
 )
 
 func TestEndpointHandler_ok(t *testing.T) {

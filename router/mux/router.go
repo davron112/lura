@@ -8,10 +8,10 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/luraproject/lura/config"
-	"github.com/luraproject/lura/logging"
-	"github.com/luraproject/lura/proxy"
-	"github.com/luraproject/lura/router"
+	"github.com/davron112/lura/config"
+	"github.com/davron112/lura/logging"
+	"github.com/davron112/lura/proxy"
+	"github.com/davron112/lura/router"
 )
 
 // DefaultDebugPattern is the default pattern used to define the debug endpoint
