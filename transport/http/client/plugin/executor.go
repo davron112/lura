@@ -12,7 +12,7 @@ import (
 	"github.com/davron112/lura/v2/transport/http/client"
 )
 
-const Namespace = "github.com/devopsfaith/krakend/transport/http/client/executor"
+const Namespace = "github.com/davron112/krakend/transport/http/client/executor"
 
 func HTTPRequestExecutor(
 	logger logging.Logger,

@@ -22,7 +22,7 @@
                 }
             ],
             "extra_config": {
-                "github.com/devopsfaith/krakend/proxy": {
+                "github.com/davron112/krakend/proxy": {
                     "static": {
                         "strategy": "errored",
                         "data": {
@@ -109,7 +109,7 @@
                 }
             ],
             "extra_config": {
-                "github.com/devopsfaith/krakend/proxy": {
+                "github.com/davron112/krakend/proxy": {
                     "static": {
                         "strategy": "incomplete",
                         "data": {
@@ -129,7 +129,7 @@
                     ],
                     "url_pattern": "/",
                     "extra_config": {
-                        "github.com/devopsfaith/krakend/http": {
+                        "github.com/davron112/krakend/http": {
                             "return_error_details": "backend_a"
                         }
                     }
@@ -140,7 +140,7 @@
                     ],
                     "url_pattern": "/",
                     "extra_config": {
-                        "github.com/devopsfaith/krakend/http": {
+                        "github.com/davron112/krakend/http": {
                             "return_error_details": "backend_b"
                         }
                     }
@@ -234,7 +234,7 @@
         {
           "endpoint": "/sequential/ok/{param}",
           "extra_config": {
-            "github.com/devopsfaith/krakend/proxy": {
+            "github.com/davron112/krakend/proxy": {
               "sequential": true
             }
           },
@@ -254,7 +254,7 @@
         {
           "endpoint": "/sequential/ko/first/{param}",
           "extra_config": {
-            "github.com/devopsfaith/krakend/proxy": {
+            "github.com/davron112/krakend/proxy": {
               "sequential": true
             }
           },
@@ -274,7 +274,7 @@
         {
           "endpoint": "/sequential/ko/last/{param}",
           "extra_config": {
-            "github.com/devopsfaith/krakend/proxy": {
+            "github.com/davron112/krakend/proxy": {
               "sequential": true
             }
           },
@@ -319,7 +319,7 @@
                     "url_pattern": "/",
                     "is_collection": true,
                     "extra_config": {
-                        "github.com/devopsfaith/krakend/proxy": {
+                        "github.com/davron112/krakend/proxy": {
                           "flatmap_filter": [
                             {
                                 "type": "del",
@@ -341,7 +341,7 @@
                     "url_pattern": "/",
                     "is_collection": true,
                     "extra_config": {
-                        "github.com/devopsfaith/krakend/proxy": {
+                        "github.com/davron112/krakend/proxy": {
                           "flatmap_filter": [
                             {
                                 "type": "move",
@@ -366,7 +366,7 @@
             "endpoint": "/sequence-accept",
             "method": "PUT",
             "extra_config": {
-                "github.com/devopsfaith/krakend/proxy": {
+                "github.com/davron112/krakend/proxy": {
                     "sequential": true
                 }
             },
@@ -394,7 +394,7 @@
                     "host": [ "{{.b3}}" ],
                     "url_pattern": "/",
                     "extra_config":{
-                        "github.com/devopsfaith/krakend/http":{
+                        "github.com/davron112/krakend/http":{
                             "return_error_code":true
                         }
                     }
@@ -408,7 +408,7 @@
                     "host": [ "{{.b4}}" ],
                     "url_pattern": "/",
                     "extra_config":{
-                        "github.com/devopsfaith/krakend/http":{
+                        "github.com/davron112/krakend/http":{
                             "return_error_code":true
                         }
                     }
@@ -422,7 +422,7 @@
                     "host": [ "{{.b3}}" ],
                     "url_pattern": "/",
                     "extra_config":{
-                        "github.com/devopsfaith/krakend/http":{
+                        "github.com/davron112/krakend/http":{
                             "return_error_code":true
                         }
                     }
@@ -431,7 +431,7 @@
                     "host": [ "{{.b4}}" ],
                     "url_pattern": "/",
                     "extra_config":{
-                        "github.com/devopsfaith/krakend/http":{
+                        "github.com/davron112/krakend/http":{
                             "return_error_code":true
                         }
                     }
