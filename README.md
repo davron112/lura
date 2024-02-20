@@ -5,7 +5,7 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/luraproject/lura)](https://goreportcard.com/report/github.com/luraproject/lura)
 [![GoDoc](https://godoc.org/github.com/luraproject/lura?status.svg)](https://godoc.org/github.com/luraproject/lura)
 ![CII Best Practices](https://bestpractices.coreinfrastructure.org/projects/3151/badge)
-![Docker Pulls](https://img.shields.io/docker/pulls/devopsfaith/krakend.svg)
+![Docker Pulls](https://img.shields.io/docker/pulls/davron112/krakend.svg)
 [![Slack Widget](https://img.shields.io/badge/join-us%20on%20slack-gray.svg?longCache=true&logo=slack&colorB=red)](https://gophers.slack.com/messages/lura)
 [![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fluraproject%2Flura.svg?type=shield&issueType=license)](https://app.fossa.com/projects/git%2Bgithub.com%2Fluraproject%2Flura?ref=badge_shield&issueType=license)
 
@@ -71,7 +71,7 @@ A ready to use example:
         "github.com/luraproject/lura/logging"
         "github.com/luraproject/lura/proxy"
         "github.com/luraproject/lura/router/gin"
-    )
+)
 
     func main() {
         port := flag.Int("p", 0, "Port of the service")

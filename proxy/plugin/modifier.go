@@ -17,11 +17,11 @@ import (
 
 const (
 	// Namespace is the namespace for the extra_config section
-	Namespace = "github.com/devopsfaith/krakend/proxy/plugin"
+	Namespace = "github.com/davron112/krakend/proxy/plugin"
 	// requestNamespace is the internal namespace for the register to be used with request modifiers
-	requestNamespace = "github.com/devopsfaith/krakend/proxy/plugin/request"
+	requestNamespace = "github.com/davron112/krakend/proxy/plugin/request"
 	// responseNamespace is the internal namespace for the register to be used with response modifiers
-	responseNamespace = "github.com/devopsfaith/krakend/proxy/plugin/response"
+	responseNamespace = "github.com/davron112/krakend/proxy/plugin/response"
 )
 
 var modifierRegister = register.New()
