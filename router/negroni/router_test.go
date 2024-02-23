@@ -14,12 +14,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/urfave/negroni/v2"
-
 	"github.com/davron112/lura/v2/config"
 	"github.com/davron112/lura/v2/logging"
 	"github.com/davron112/lura/v2/proxy"
 	"github.com/davron112/lura/v2/transport/http/server"
+	"github.com/urfave/negroni/v2"
 )
 
 func TestDefaultFactory_ok(t *testing.T) {
@@ -111,8 +110,8 @@ func TestDefaultFactory_ok(t *testing.T) {
 		if resp.Header.Get("Content-Type") != "application/json" {
 			t.Error(endpoint.Endpoint, "Content-Type error:", resp.Header.Get("Content-Type"))
 		}
-		if resp.Header.Get("X-Krakend") != "Version undefined" {
-			t.Error(endpoint.Endpoint, "X-Krakend error:", resp.Header.Get("X-Krakend"))
+		if resp.Header.Get("X-Gateway") != "Version undefined" {
+			t.Error(endpoint.Endpoint, "X-Gateway error:", resp.Header.Get("X-Gateway"))
 		}
 		if resp.StatusCode != http.StatusOK {
 			t.Error(endpoint.Endpoint, "Unexpected status code:", resp.StatusCode)
@@ -186,8 +185,8 @@ func TestDefaultFactory_middlewares(t *testing.T) {
 		if resp.Header.Get("Content-Type") != "application/json" {
 			t.Error(endpoint.Endpoint, "Content-Type error:", resp.Header.Get("Content-Type"))
 		}
-		if resp.Header.Get("X-Krakend") != "Version undefined" {
-			t.Error(endpoint.Endpoint, "X-Krakend error:", resp.Header.Get("X-Krakend"))
+		if resp.Header.Get("X-Gateway") != "Version undefined" {
+			t.Error(endpoint.Endpoint, "X-Gateway error:", resp.Header.Get("X-Gateway"))
 		}
 		if resp.StatusCode != http.StatusOK {
 			t.Error(endpoint.Endpoint, "Unexpected status code:", resp.StatusCode)
@@ -334,8 +333,8 @@ func checkResponseIs404(t *testing.T, req *http.Request) {
 	if resp.Header.Get("Content-Type") != "text/plain; charset=utf-8" {
 		t.Error("Content-Type error:", resp.Header.Get("Content-Type"))
 	}
-	if resp.Header.Get("X-Krakend") != "" {
-		t.Error("X-Krakend error:", resp.Header.Get("X-Krakend"))
+	if resp.Header.Get("X-Gateway") != "" {
+		t.Error("X-Gateway error:", resp.Header.Get("X-Gateway"))
 	}
 	if resp.StatusCode != http.StatusNotFound {
 		t.Error("Unexpected status code:", resp.StatusCode)

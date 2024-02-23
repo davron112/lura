@@ -21,9 +21,6 @@ import (
 	"text/template"
 	"time"
 
-	ginlib "github.com/gin-gonic/gin"
-	"github.com/urfave/negroni/v2"
-
 	"github.com/davron112/lura/v2/config"
 	"github.com/davron112/lura/v2/logging"
 	"github.com/davron112/lura/v2/proxy"
@@ -33,6 +30,8 @@ import (
 	"github.com/davron112/lura/v2/router/httptreemux"
 	luranegroni "github.com/davron112/lura/v2/router/negroni"
 	"github.com/davron112/lura/v2/transport/http/server"
+	ginlib "github.com/gin-gonic/gin"
+	"github.com/urfave/negroni/v2"
 )
 
 var localhostIP string
@@ -153,13 +152,13 @@ func testKrakenD(t *testing.T, runRouter func(logging.Logger, *config.ServiceCon
 	defaultHeaders := map[string]string{
 		"Content-Type":        "application/json",
 		"X-KrakenD-Completed": "true",
-		"X-Krakend":           "Version undefined",
+		"X-Gateway":           "Version undefined",
 	}
 
 	incompleteHeader := map[string]string{
 		"Content-Type":        "application/json",
 		"X-KrakenD-Completed": "false",
-		"X-Krakend":           "Version undefined",
+		"X-Gateway":           "Version undefined",
 	}
 
 	for _, tc := range []struct {
@@ -310,7 +309,7 @@ func testKrakenD(t *testing.T, runRouter func(logging.Logger, *config.ServiceCon
 			url:  "/sequential/ko/first/foo",
 			expHeaders: map[string]string{
 				"X-KrakenD-Completed": "false",
-				"X-Krakend":           "Version undefined",
+				"X-Gateway":           "Version undefined",
 			},
 			expStatusCode: 500,
 		},

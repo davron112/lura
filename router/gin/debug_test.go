@@ -9,9 +9,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/gin-gonic/gin"
-
 	"github.com/davron112/lura/v2/logging"
+	"github.com/gin-gonic/gin"
 )
 
 func TestDebugHandler(t *testing.T) {
@@ -48,8 +47,8 @@ func TestDebugHandler(t *testing.T) {
 	if w.Result().Header.Get("Content-Type") != "application/json; charset=utf-8" {
 		t.Error("Content-Type error:", w.Result().Header.Get("Content-Type"))
 	}
-	if w.Result().Header.Get("X-Krakend") != "" {
-		t.Error("X-Krakend error:", w.Result().Header.Get("X-Krakend"))
+	if w.Result().Header.Get("X-Gateway") != "" {
+		t.Error("X-Gateway error:", w.Result().Header.Get("X-Gateway"))
 	}
 	if w.Result().StatusCode != http.StatusOK {
 		t.Error("Unexpected status code:", w.Result().StatusCode)

@@ -13,11 +13,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/go-chi/chi/v5"
-
 	"github.com/davron112/lura/v2/config"
 	"github.com/davron112/lura/v2/proxy"
 	"github.com/davron112/lura/v2/transport/http/server"
+	"github.com/go-chi/chi/v5"
 )
 
 func TestEndpointHandler_ok(t *testing.T) {
@@ -271,8 +270,8 @@ func (tc endpointHandlerTestCase) test(t *testing.T) {
 	if resp.Header.Get("Content-Type") != tc.expectedContent {
 		t.Error("Content-Type error:", resp.Header.Get("Content-Type"))
 	}
-	if resp.Header.Get("X-Krakend") != "Version undefined" {
-		t.Error("X-Krakend error:", resp.Header.Get("X-Krakend"))
+	if resp.Header.Get("X-Gateway") != "Version undefined" {
+		t.Error("X-Gateway error:", resp.Header.Get("X-Gateway"))
 	}
 	if resp.StatusCode != tc.expectedStatusCode {
 		t.Error("Unexpected status code:", resp.StatusCode)
