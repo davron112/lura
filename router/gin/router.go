@@ -18,6 +18,7 @@ import (
 	"github.com/davron112/lura/v2/proxy"
 	"github.com/davron112/lura/v2/router"
 	"github.com/davron112/lura/v2/transport/http/server"
+	"github.com/davron112/lura/v2/utils"
 	"github.com/gin-gonic/gin"
 )
 
@@ -98,6 +99,22 @@ func (r ginRouter) Run(cfg config.ServiceConfig) {
 	defer r.mu.Unlock()
 
 	server.InitHTTPDefaultTransport(cfg)
+
+     // Custom error handling middleware
+    	r.cfg.Engine.Use(func(c *gin.Context) {
+    		c.Next() // Process request
+
+    		// Check if there are any errors
+    		if len(c.Errors) > 0 {
+    			for _, e := range c.Errors {
+    				// Type assert error to HTTPError
+    				if httpErr, ok := e.Err.(*utils.HTTPError); ok {
+    					c.AbortWithStatusJSON(httpErr.StatusCode, gin.H{"error": httpErr.Message})
+    					return
+    				}
+    			}
+    		}
+    	})
 
 	r.registerEndpointsAndMiddlewares(cfg)
 
