@@ -11,18 +11,18 @@ import (
 	"plugin"
 	"strings"
 
-	"github.com/luraproject/lura/v2/logging"
-	luraplugin "github.com/luraproject/lura/v2/plugin"
-	"github.com/luraproject/lura/v2/register"
+	"github.com/davron112/lura/v2/logging"
+	luraplugin "github.com/davron112/lura/v2/plugin"
+	"github.com/davron112/lura/v2/register"
 )
 
 const (
 	// Namespace is the namespace for the extra_config section
-	Namespace = "github.com/devopsfaith/krakend/proxy/plugin"
+	Namespace = "github.com/davron112/lura/proxy/plugin"
 	// requestNamespace is the internal namespace for the register to be used with request modifiers
-	requestNamespace = "github.com/devopsfaith/krakend/proxy/plugin/request"
+	requestNamespace = "github.com/davron112/lura/proxy/plugin/request"
 	// responseNamespace is the internal namespace for the register to be used with response modifiers
-	responseNamespace = "github.com/devopsfaith/krakend/proxy/plugin/response"
+	responseNamespace = "github.com/davron112/lura/proxy/plugin/response"
 )
 
 var modifierRegister = register.New()

@@ -9,8 +9,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/luraproject/lura/v2/config"
-	"github.com/luraproject/lura/v2/sd"
+	"github.com/davron112/lura/v2/config"
+	"github.com/davron112/lura/v2/sd"
 )
 
 func ExampleRegister() {

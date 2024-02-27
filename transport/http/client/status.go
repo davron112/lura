@@ -9,11 +9,11 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/luraproject/lura/v2/config"
+	"github.com/davron112/lura/v2/config"
 )
 
 // Namespace to be used in extra config
-const Namespace = "github.com/devopsfaith/krakend/http"
+const Namespace = "github.com/davron112/lura/http"
 
 // ErrInvalidStatusCode is the error returned by the http proxy when the received status code
 // is not a 200 nor a 201

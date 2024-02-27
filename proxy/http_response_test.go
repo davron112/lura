@@ -10,7 +10,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/luraproject/lura/v2/encoding"
+	"github.com/davron112/lura/v2/encoding"
 )
 
 func TestNopHTTPResponseParser(t *testing.T) {

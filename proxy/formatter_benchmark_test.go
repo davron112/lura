@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/luraproject/lura/v2/config"
+	"github.com/davron112/lura/v2/config"
 )
 
 func BenchmarkEntityFormatter_allowFilter(b *testing.B) {
