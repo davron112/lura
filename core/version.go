@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: Apache-2.0
 
 /*
-   Package core contains some basic constants and variables
+Package core contains some basic constants and variables
 */
 package core
 
 import "fmt"
 
 // KrakendHeaderName is the name of the custom KrakenD header
-const KrakendHeaderName = "X-KRAKEND"
+const KrakendHeaderName = "X-GATEWAY"
 
 // KrakendVersion is the version of the build
 var KrakendVersion = "undefined"

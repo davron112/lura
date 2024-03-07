@@ -66,8 +66,8 @@ func TestRender_unknown(t *testing.T) {
 		if w.Result().Header.Get("Content-Type") != expectedHeader {
 			t.Error(testData[0], "Content-Type error:", w.Result().Header.Get("Content-Type"))
 		}
-		if w.Result().Header.Get("X-Krakend") != "Version undefined" {
-			t.Error(testData[0], "X-Krakend error:", w.Result().Header.Get("X-Krakend"))
+		if w.Result().Header.Get("X-Gateway") != "Version undefined" {
+			t.Error(testData[0], "X-Gateway error:", w.Result().Header.Get("X-Gateway"))
 		}
 		if w.Result().StatusCode != http.StatusOK {
 			t.Error(testData[0], "Unexpected status code:", w.Result().StatusCode)
@@ -127,8 +127,8 @@ func TestRender_string(t *testing.T) {
 		if w.Result().Header.Get("Content-Type") != expectedHeader {
 			t.Error(testData[0], "Content-Type error:", w.Result().Header.Get("Content-Type"))
 		}
-		if w.Result().Header.Get("X-Krakend") != "Version undefined" {
-			t.Error(testData[0], "X-Krakend error:", w.Result().Header.Get("X-Krakend"))
+		if w.Result().Header.Get("X-Gateway") != "Version undefined" {
+			t.Error(testData[0], "X-Gateway error:", w.Result().Header.Get("X-Gateway"))
 		}
 		if w.Result().StatusCode != http.StatusOK {
 			t.Error(testData[0], "Unexpected status code:", w.Result().StatusCode)
@@ -189,8 +189,8 @@ func TestRender_string_noData(t *testing.T) {
 		if w.Result().Header.Get("Content-Type") != expectedHeader {
 			t.Error(k, "Content-Type error:", w.Result().Header.Get("Content-Type"))
 		}
-		if w.Result().Header.Get("X-Krakend") != "Version undefined" {
-			t.Error(k, "X-Krakend error:", w.Result().Header.Get("X-Krakend"))
+		if w.Result().Header.Get("X-Gateway") != "Version undefined" {
+			t.Error(k, "X-Gateway error:", w.Result().Header.Get("X-Gateway"))
 		}
 		if w.Result().StatusCode != http.StatusOK {
 			t.Error(k, "Unexpected status code:", w.Result().StatusCode)
@@ -272,8 +272,8 @@ func TestRender_noop(t *testing.T) {
 	if w.Result().Header.Get("Content-Type") != expectedHeader {
 		t.Error("Content-Type error:", w.Result().Header.Get("Content-Type"))
 	}
-	if w.Result().Header.Get("X-Krakend") != "Version undefined" {
-		t.Error("X-Krakend error:", w.Result().Header.Get("X-Krakend"))
+	if w.Result().Header.Get("X-Gateway") != "Version undefined" {
+		t.Error("X-Gateway error:", w.Result().Header.Get("X-Gateway"))
 	}
 	if w.Result().StatusCode != http.StatusOK {
 		t.Error("Unexpected status code:", w.Result().StatusCode)
@@ -323,8 +323,8 @@ func TestRender_noop_nilBody(t *testing.T) {
 	if w.Result().Header.Get("Content-Type") != expectedHeader {
 		t.Error("Content-Type error:", w.Result().Header.Get("Content-Type"))
 	}
-	if w.Result().Header.Get("X-Krakend") != "Version undefined" {
-		t.Error("X-Krakend error:", w.Result().Header.Get("X-Krakend"))
+	if w.Result().Header.Get("X-Gateway") != "Version undefined" {
+		t.Error("X-Gateway error:", w.Result().Header.Get("X-Gateway"))
 	}
 	if w.Result().StatusCode != http.StatusOK {
 		t.Error("Unexpected status code:", w.Result().StatusCode)
@@ -358,8 +358,8 @@ func TestRender_noop_nilResponse(t *testing.T) {
 	if w.Result().Header.Get("Content-Type") != "text/plain; charset=utf-8" {
 		t.Error("Content-Type error:", w.Result().Header.Get("Content-Type"))
 	}
-	if w.Result().Header.Get("X-Krakend") != "Version undefined" {
-		t.Error("X-Krakend error:", w.Result().Header.Get("X-Krakend"))
+	if w.Result().Header.Get("X-Gateway") != "Version undefined" {
+		t.Error("X-Gateway error:", w.Result().Header.Get("X-Gateway"))
 	}
 	if w.Result().StatusCode != http.StatusInternalServerError {
 		t.Error("Unexpected status code:", w.Result().StatusCode)

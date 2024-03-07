@@ -10,7 +10,7 @@ import (
 	"github.com/davron112/lura/v2/logging"
 )
 
-const Namespace = "github_com/davron112/lure/transport/http/server/handler"
+const Namespace = "github_com/davron112/lura/transport/http/server/handler"
 const logPrefix = "[PLUGIN: Server]"
 
 type RunServer func(context.Context, config.ServiceConfig, http.Handler) error

@@ -121,8 +121,8 @@ func TestDefaultFactory_ok(t *testing.T) {
 		if resp.Header.Get("Content-Type") != "application/json; charset=utf-8" {
 			t.Error("Content-Type error:", resp.Header.Get("Content-Type"))
 		}
-		if resp.Header.Get("X-Krakend") != "Version undefined" {
-			t.Error("X-Krakend error:", resp.Header.Get("X-Krakend"))
+		if resp.Header.Get("X-Gateway") != "Version undefined" {
+			t.Error("X-Gateway error:", resp.Header.Get("X-Gateway"))
 		}
 		if resp.StatusCode != http.StatusOK {
 			t.Error("Unexpected status code:", resp.StatusCode)
@@ -300,8 +300,8 @@ func checkResponseIs404(t *testing.T, req *http.Request) {
 	if resp.Header.Get("Content-Type") != "text/plain" {
 		t.Error(req.URL.String(), "Content-Type error:", resp.Header.Get("Content-Type"))
 	}
-	if resp.Header.Get("X-Krakend") != "" {
-		t.Error(req.URL.String(), "X-Krakend error:", resp.Header.Get("X-Krakend"))
+	if resp.Header.Get("X-Gateway") != "" {
+		t.Error(req.URL.String(), "X-Gateway error:", resp.Header.Get("X-Gateway"))
 	}
 	if resp.StatusCode != http.StatusNotFound {
 		t.Error(req.URL.String(), "Unexpected status code:", resp.StatusCode)

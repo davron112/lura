@@ -152,14 +152,14 @@ func testKrakenD(t *testing.T, runRouter func(logging.Logger, *config.ServiceCon
 
 	defaultHeaders := map[string]string{
 		"Content-Type":        "application/json",
-		"X-KrakenD-Completed": "true",
-		"X-Krakend":           "Version undefined",
+		"X-Gateway-Completed": "true",
+		"X-Gateway":           "Version undefined",
 	}
 
 	incompleteHeader := map[string]string{
 		"Content-Type":        "application/json",
-		"X-KrakenD-Completed": "false",
-		"X-Krakend":           "Version undefined",
+		"X-Gateway-Completed": "false",
+		"X-Gateway":           "Version undefined",
 	}
 
 	for _, tc := range []struct {
@@ -309,8 +309,8 @@ func testKrakenD(t *testing.T, runRouter func(logging.Logger, *config.ServiceCon
 			name: "sequential ko first",
 			url:  "/sequential/ko/first/foo",
 			expHeaders: map[string]string{
-				"X-KrakenD-Completed": "false",
-				"X-Krakend":           "Version undefined",
+				"X-Gateway-Completed": "false",
+				"X-Gateway":           "Version undefined",
 			},
 			expStatusCode: 500,
 		},

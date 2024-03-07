@@ -67,8 +67,8 @@ func echoRunTestRequest(t *testing.T, e http.HandlerFunc, body io.Reader, expect
 	if w.Result().Header.Get("Content-Type") != "application/json" {
 		t.Error("Content-Type error:", w.Result().Header.Get("Content-Type"))
 	}
-	if w.Result().Header.Get("X-Krakend") != "" {
-		t.Error("X-Krakend error:", w.Result().Header.Get("X-Krakend"))
+	if w.Result().Header.Get("X-Gateway") != "" {
+		t.Error("X-Gateway error:", w.Result().Header.Get("X-Gateway"))
 	}
 	if w.Result().StatusCode != http.StatusOK {
 		t.Error("Unexpected status code:", w.Result().StatusCode)
