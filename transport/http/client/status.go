@@ -9,7 +9,7 @@ import (
 	"io"
 	"net/http"
 
-	"mygov-gateway/v2/modules/lura/v2/config"
+	"github.com/davron112/lura/v2/modules/lura/v2/config"
 )
 
 // Namespace to be used in extra config
