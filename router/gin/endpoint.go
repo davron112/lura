@@ -104,6 +104,16 @@ func CustomErrorEndpointHandler(logger logging.Logger, errF server.ToHTTPError) 
 				}
 			}
 
+			if response.Metadata.StatusCode >= 400 {
+				c.Header("Content-Type", "application/json")
+				c.JSON(response.Metadata.StatusCode, gin.H{
+					"success": false,
+					"error":   response.Data,
+					"detail":  nil,
+				})
+				return
+			}
+
 			render(c, response)
 			cancel()
 		}
