@@ -103,6 +103,11 @@ func CustomErrorEndpointHandler(logger logging.Logger, errF server.ToHTTPError) 
 					return
 				}
 			}
+			
+			if response.Metadata.StatusCode >= 301 && response.Metadata.StatusCode <= 303 {
+				c.Status(response.Metadata.StatusCode)
+				return
+			}
 
 			if response.Metadata.StatusCode >= 400 {
 				c.Header("Content-Type", "application/json")
