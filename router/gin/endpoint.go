@@ -40,6 +40,7 @@ func CustomErrorEndpointHandler(logger logging.Logger, errF server.ToHTTPError) 
 		requestGenerator := NewRequest(configuration.HeadersToPass)
 		render := getRender(configuration)
 		logPrefix := "[ENDPOINT: " + configuration.Endpoint + "]"
+		isNoOp := configuration.OutputEncoding == "no-op"
 
 		return func(c *gin.Context) {
 			requestCtx, cancel := context.WithTimeout(c, configuration.Timeout)
@@ -109,7 +110,7 @@ func CustomErrorEndpointHandler(logger logging.Logger, errF server.ToHTTPError) 
 				return
 			}
 
-			if response.Metadata.StatusCode >= 400 {
+			if response.Metadata.StatusCode >= 400 && isNoOp == false {
 				c.Header("Content-Type", "application/json")
 				c.JSON(response.Metadata.StatusCode, gin.H{
 					"success": false,
