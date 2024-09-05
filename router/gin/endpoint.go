@@ -7,12 +7,12 @@ import (
 	"fmt"
 	"net/textproto"
 
+	"github.com/davron112/gin"
 	"github.com/davron112/lura/v2/config"
 	"github.com/davron112/lura/v2/core"
 	"github.com/davron112/lura/v2/logging"
 	"github.com/davron112/lura/v2/proxy"
 	"github.com/davron112/lura/v2/transport/http/server"
-	"github.com/gin-gonic/gin"
 )
 
 const requestParamsAsterisk string = "*"
@@ -104,7 +104,7 @@ func CustomErrorEndpointHandler(logger logging.Logger, errF server.ToHTTPError) 
 					return
 				}
 			}
-			
+
 			if response.Metadata.StatusCode >= 301 && response.Metadata.StatusCode <= 303 {
 				c.Status(response.Metadata.StatusCode)
 				return

@@ -10,6 +10,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/urfave/negroni/v2"
 	"io"
 	"math/rand"
 	"net"
@@ -21,6 +22,7 @@ import (
 	"text/template"
 	"time"
 
+	ginlib "github.com/davron112/gin"
 	"github.com/davron112/lura/v2/config"
 	"github.com/davron112/lura/v2/logging"
 	"github.com/davron112/lura/v2/proxy"
@@ -30,8 +32,6 @@ import (
 	"github.com/davron112/lura/v2/router/httptreemux"
 	luranegroni "github.com/davron112/lura/v2/router/negroni"
 	"github.com/davron112/lura/v2/transport/http/server"
-	ginlib "github.com/gin-gonic/gin"
-	"github.com/urfave/negroni/v2"
 )
 
 var localhostIP string

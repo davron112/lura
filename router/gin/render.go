@@ -7,10 +7,10 @@ import (
 	"net/http"
 	"sync"
 
+	"github.com/davron112/gin"
 	"github.com/davron112/lura/v2/config"
 	"github.com/davron112/lura/v2/encoding"
 	"github.com/davron112/lura/v2/proxy"
-	"github.com/gin-gonic/gin"
 )
 
 // Render defines the signature of the functions to be use for the final response

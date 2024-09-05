@@ -12,6 +12,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/davron112/gin"
 	"github.com/davron112/lura/v2/config"
 	"github.com/davron112/lura/v2/core"
 	"github.com/davron112/lura/v2/logging"
@@ -19,7 +20,6 @@ import (
 	"github.com/davron112/lura/v2/router"
 	"github.com/davron112/lura/v2/transport/http/server"
 	"github.com/davron112/lura/v2/utils"
-	"github.com/gin-gonic/gin"
 )
 
 const logPrefix = "[SERVICE: Gin]"
@@ -100,21 +100,21 @@ func (r ginRouter) Run(cfg config.ServiceConfig) {
 
 	server.InitHTTPDefaultTransport(cfg)
 
-     // Custom error handling middleware
-    	r.cfg.Engine.Use(func(c *gin.Context) {
-    		c.Next() // Process request
+	// Custom error handling middleware
+	r.cfg.Engine.Use(func(c *gin.Context) {
+		c.Next() // Process request
 
-    		// Check if there are any errors
-    		if len(c.Errors) > 0 {
-    			for _, e := range c.Errors {
-    				// Type assert error to HTTPError
-    				if httpErr, ok := e.Err.(*utils.HTTPError); ok {
-    					c.AbortWithStatusJSON(httpErr.StatusCode, gin.H{"error": httpErr.Message})
-    					return
-    				}
-    			}
-    		}
-    	})
+		// Check if there are any errors
+		if len(c.Errors) > 0 {
+			for _, e := range c.Errors {
+				// Type assert error to HTTPError
+				if httpErr, ok := e.Err.(*utils.HTTPError); ok {
+					c.AbortWithStatusJSON(httpErr.StatusCode, gin.H{"error": httpErr.Message})
+					return
+				}
+			}
+		}
+	})
 
 	r.registerEndpointsAndMiddlewares(cfg)
 

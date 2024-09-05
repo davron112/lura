@@ -9,7 +9,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/gin-gonic/gin"
+	"github.com/davron112/gin"
 )
 
 func TestEchoHandler(t *testing.T) {

@@ -14,11 +14,11 @@ import (
 	"sync"
 	"time"
 
+	"github.com/davron112/gin"
 	"github.com/davron112/lura/v2/config"
 	"github.com/davron112/lura/v2/core"
 	"github.com/davron112/lura/v2/logging"
 	"github.com/davron112/lura/v2/transport/http/server"
-	"github.com/gin-gonic/gin"
 )
 
 const Namespace = "github_com/davron112/lura/router/gin"

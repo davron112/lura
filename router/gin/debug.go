@@ -5,8 +5,8 @@ package gin
 import (
 	"io"
 
+	"github.com/davron112/gin"
 	"github.com/davron112/lura/v2/logging"
-	"github.com/gin-gonic/gin"
 )
 
 // DebugHandler creates a dummy handler function, useful for quick integration tests

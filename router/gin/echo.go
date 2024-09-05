@@ -6,7 +6,7 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/gin-gonic/gin"
+	"github.com/davron112/gin"
 )
 
 type echoResponse struct {
